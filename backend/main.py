@@ -147,8 +147,7 @@ def get_driver_telemetry(year: int, round_number: int, session_type: str, driver
         # 2. Get Telemetry (Speed, Throttle, Brake)
         tel = lap.get_telemetry()
         
-        # 3. Downsample: Take every 8th point to keep it fast
-        tel_reduced = tel.iloc[::8]
+        tel_reduced = tel.iloc[::4]
 
         telemetry_data = []
         for _, row in tel_reduced.iterrows():
@@ -158,13 +157,76 @@ def get_driver_telemetry(year: int, round_number: int, session_type: str, driver
                 "Throttle": int(row['Throttle']),
                 "Brake": int(row['Brake']),
                 "RPM": int(row['RPM']),
-                "nGear": int(row['nGear'])
+                "Gear": int(row['nGear'])
             })
             
         return {
             "driver": driver, 
             "telemetry": telemetry_data
         }
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return {"error": str(e)}
+
+
+@app.get("/api/map/{year}/{round_number}/{session_type}/{driver}")
+def get_track_map(year: int, round_number: int, session_type: str, driver: str):
+    try:
+        session = fastf1.get_session(year, round_number, session_type)
+        session.load(telemetry=True, weather=False)
+        
+        # 1. Get the fastest lap
+        lap = session.laps.pick_driver(driver).pick_fastest()
+        
+        # 2. Get Telemetry (includes X, Y, Z coordinates)
+        # We also want 'Speed' so we can color-code the map later if we want
+        pos_data = lap.get_telemetry()
+        
+        pos_reduced = pos_data.iloc[::2]
+
+        track_data = []
+        for _, row in pos_reduced.iterrows():
+            track_data.append({
+                "x": row['X'],
+                "y": row['Y'],
+                "speed": row['Speed'] # Useful for coloring later
+            })
+            
+        return {
+            "driver": driver, 
+            "track_data": track_data
+        }
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return {"error": str(e)}
+
+@app.get("/api/strategy/{year}/{round_number}/{session_type}/{driver}")
+def get_tyre_strategy(year: int, round_number: int, session_type: str, driver: str):
+    try:
+        session = fastf1.get_session(year, round_number, session_type)
+        session.load(telemetry=False, weather=False)
+        
+        laps = session.laps.pick_driver(driver)
+        stints = []
+        
+        # Group laps by 'Stint' to find start/end of each tyre set
+        # We look at "Compound" (SOFT, MEDIUM, HARD)
+        for stint_id, stint_laps in laps.groupby("Stint"):
+            compound = stint_laps["Compound"].iloc[0]
+            start_lap = int(stint_laps["LapNumber"].min())
+            end_lap = int(stint_laps["LapNumber"].max())
+            
+            stints.append({
+                "stint": int(stint_id),
+                "compound": str(compound),
+                "start_lap": start_lap,
+                "end_lap": end_lap,
+                "laps_count": end_lap - start_lap + 1
+            })
+            
+        return {"driver": driver, "strategy": stints}
 
     except Exception as e:
         print(f"Error: {e}")

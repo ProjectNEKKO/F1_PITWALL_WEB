@@ -4,11 +4,9 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 function TelemetryChart({ data, driver1, driver2 }) {
   if (!data) return null;
 
-  // 1. COLORS: Define standard F1 colors
-  const colorDriver1 = "#e10600"; // Red (Official F1)
-  const colorDriver2 = "#2b6ef9"; // Bright Blue (High Contrast)
+  const colorDriver1 = "#e10600";
+  const colorDriver2 = "#2b6ef9"; 
 
-  // 2. SHARED SETTINGS
   const commonGrid = <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />;
   const commonXAxis = (hideLabel = true) => (
     <XAxis 
@@ -19,8 +17,8 @@ function TelemetryChart({ data, driver1, driver2 }) {
       tickFormatter={(val) => (val / 1000).toFixed(1) + 'km'} 
       stroke="#999"
       fontSize={12}
-      tick={!hideLabel} // Only show numbers on the bottom chart
-      height={hideLabel ? 0 : 30} // Remove height if hidden to save space
+      tick={!hideLabel} 
+      height={hideLabel ? 0 : 30} 
     />
   );
 
@@ -47,9 +45,9 @@ function TelemetryChart({ data, driver1, driver2 }) {
   return (
     <div style={{ background: 'white', padding: '20px', borderRadius: '0 0 10px 10px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
       
-      {/* 1. SPEED CHART (Big) */}
-      <div style={{ width: '100%', height: 280, marginBottom: '15px' }}>
-        <h4 style={{margin: '0 0 5px 10px', fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '1px'}}>Speed (km/h)</h4>
+      {/* 1. SPEED */}
+      <div style={{ width: '100%', height: 200, marginBottom: '10px' }}>
+        <h4 style={{margin: '0 0 0 10px', fontSize: '11px', color: '#888', textTransform: 'uppercase'}}>Speed (km/h)</h4>
         <ResponsiveContainer>
           <LineChart data={data} syncId="f1Telemetry" margin={{ top: 5, right: 20, left: 0, bottom: 0 }}>
             {commonGrid}
@@ -57,45 +55,59 @@ function TelemetryChart({ data, driver1, driver2 }) {
             <YAxis domain={[0, 360]} hide />
             <Tooltip content={<CustomTooltip />} />
             <Legend verticalAlign="top" height={36} iconType="circle"/>
-            
-            <Line type="monotone" dataKey="Speed" name={driver1} stroke={colorDriver1} strokeWidth={2.5} dot={false} activeDot={{ r: 6 }} />
-            {driver2 && <Line type="monotone" dataKey="Speed2" name={driver2} stroke={colorDriver2} strokeWidth={2.5} dot={false} strokeDasharray="3 3" />}
+            <Line type="monotone" dataKey="Speed" name={driver1} stroke={colorDriver1} strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+            {driver2 && <Line type="monotone" dataKey="Speed2" name={driver2} stroke={colorDriver2} strokeWidth={2} dot={false} strokeDasharray="3 3" />}
           </LineChart>
         </ResponsiveContainer>
       </div>
 
-      {/* 2. THROTTLE CHART (Medium) */}
-      <div style={{ width: '100%', height: 140, marginBottom: '15px' }}>
-        <h4 style={{margin: '0 0 5px 10px', fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '1px'}}>Throttle (%)</h4>
+      {/* 2. THROTTLE */}
+      <div style={{ width: '100%', height: 100, marginBottom: '10px' }}>
+        <h4 style={{margin: '0 0 0 10px', fontSize: '11px', color: '#888', textTransform: 'uppercase'}}>Throttle (%)</h4>
         <ResponsiveContainer>
           <LineChart data={data} syncId="f1Telemetry" margin={{ top: 5, right: 20, left: 0, bottom: 0 }}>
             {commonGrid}
             {commonXAxis(true)}
             <YAxis domain={[0, 105]} hide />
             <Tooltip content={<CustomTooltip />} />
-            
-            <Line type="step" dataKey="Throttle" name="Throttle" stroke={colorDriver1} strokeWidth={2} dot={false} />
-            {driver2 && <Line type="step" dataKey="Throttle2" name="Throttle" stroke={colorDriver2} strokeWidth={2} dot={false} strokeDasharray="3 3" />}
+            <Line type="step" dataKey="Throttle" name="Throttle" stroke={colorDriver1} strokeWidth={1.5} dot={false} />
+            {driver2 && <Line type="step" dataKey="Throttle2" name="Throttle" stroke={colorDriver2} strokeWidth={1.5} dot={false} strokeDasharray="3 3" />}
           </LineChart>
         </ResponsiveContainer>
       </div>
 
-      {/* 3. BRAKE CHART (Small but Clear) */}
-      <div style={{ width: '100%', height: 100 }}>
-        <h4 style={{margin: '0 0 5px 10px', fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '1px'}}>Brake (On/Off)</h4>
+      {/* 3. BRAKE */}
+      <div style={{ width: '100%', height: 60, marginBottom: '10px' }}>
+        <h4 style={{margin: '0 0 0 10px', fontSize: '11px', color: '#888', textTransform: 'uppercase'}}>Brake</h4>
         <ResponsiveContainer>
           <LineChart data={data} syncId="f1Telemetry" margin={{ top: 5, right: 20, left: 0, bottom: 0 }}>
             {commonGrid}
-            {commonXAxis(false)} {/* Show Labels Here */}
+            {commonXAxis(true)}
             <YAxis domain={[0, 1.2]} hide />
             <Tooltip content={<CustomTooltip />} />
-            
-            {/* Using Line instead of Area for cleaner overlap viewing */}
-            <Line type="step" dataKey="Brake" name="Brake" stroke={colorDriver1} strokeWidth={3} dot={false} />
-            {driver2 && <Line type="step" dataKey="Brake2" name="Brake" stroke={colorDriver2} strokeWidth={3} dot={false} strokeDasharray="3 3" />}
+            <Line type="step" dataKey="Brake" name="Brake" stroke={colorDriver1} strokeWidth={2} dot={false} />
+            {driver2 && <Line type="step" dataKey="Brake2" name="Brake" stroke={colorDriver2} strokeWidth={2} dot={false} strokeDasharray="3 3" />}
           </LineChart>
         </ResponsiveContainer>
       </div>
+
+      {/* 4. GEAR (NEW!) */}
+      <div style={{ width: '100%', height: 100 }}>
+        <h4 style={{margin: '0 0 0 10px', fontSize: '11px', color: '#888', textTransform: 'uppercase'}}>Gear (1-8)</h4>
+        <ResponsiveContainer>
+          <LineChart data={data} syncId="f1Telemetry" margin={{ top: 5, right: 20, left: 0, bottom: 0 }}>
+            {commonGrid}
+            {commonXAxis(false)}
+            {/* Domain 0-9 to keep 8 gears visible */}
+            <YAxis domain={[0, 9]} hide />
+            <Tooltip content={<CustomTooltip />} />
+            {/* Use type="stepAfter" for sharp gear changes */}
+            <Line type="stepAfter" dataKey="Gear" name="Gear" stroke={colorDriver1} strokeWidth={1.5} dot={false} />
+            {driver2 && <Line type="stepAfter" dataKey="Gear2" name="Gear" stroke={colorDriver2} strokeWidth={1.5} dot={false} strokeDasharray="3 3" />}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+
     </div>
   );
 }

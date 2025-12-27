@@ -14,3 +14,14 @@ export const getTelemetry = async (year, round, sessionType, driver) => {
     const res = await fetch(`${BASE_URL}/telemetry/${year}/${round}/${sessionType}/${driver}`);
     return res.json();
 };
+
+// --- MAKE SURE THIS PART IS HERE ---
+export const getTrackMap = async (year, round, sessionType, driver) => {
+    const res = await fetch(`${BASE_URL}/map/${year}/${round}/${sessionType}/${driver}`);
+    return res.json();
+};
+
+export const getTyreStrategy = async (year, round, sessionType, driver) => {
+    const res = await fetch(`${BASE_URL}/strategy/${year}/${round}/${sessionType}/${driver}`);
+    return res.json();
+};

@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
-import { getSchedule, getSessionResults, getTelemetry } from './services/api';
+import { getSchedule, getSessionResults, getTelemetry, getTrackMap, getTyreStrategy } from './services/api';
 import Sidebar from './components/Sidebar';
 import ResultsTable from './components/ResultsTable';
 import SessionControls from './components/SessionControls';
 import Telemetry from './components/Telemetry';
+import TrackMap from './components/TrackMap';
+import TyreStrategy from './components/TyreStrategy';
 
 function App() {
+  // State
   const [selectedYear, setSelectedYear] = useState(2024);
   const [races, setRaces] = useState([]);
   const [selectedRound, setSelectedRound] = useState(null);
@@ -13,6 +16,8 @@ function App() {
   const [sessionType, setSessionType] = useState('R');
   
   const [telemetryData, setTelemetryData] = useState(null);
+  const [trackData, setTrackData] = useState(null);
+  const [strategyData, setStrategyData] = useState(null);
   const [selectedDriver, setSelectedDriver] = useState(null);
   const [comparisonDriver, setComparisonDriver] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -30,12 +35,10 @@ function App() {
   const loadSession = (round, type) => {
     setSelectedRound(round);
     setSessionType(type);
-    // Don't clear telemetry immediately so the graph doesn't "blink" away if keeping same driver
-    // But for a new round, we probably should clear it.
-    // For now, let's clear it to be safe.
     setTelemetryData(null);
     setSelectedDriver(null);
     setComparisonDriver(null);
+    setTrackData(null);
 
     getSessionResults(selectedYear, round, type).then(data => {
       if (!data.error) setSelectedRaceResults(data.results);
@@ -48,10 +51,19 @@ function App() {
     setLoading(true);
     setSelectedDriver(driver);
     setComparisonDriver(null);
+    setTrackData(null); 
+    setStrategyData(null);
     
-    getTelemetry(selectedYear, selectedRound, sessionType, driver).then(data => {
-      setTelemetryData(data.telemetry);
-      setLoading(false);
+    // Fetch Telemetry AND Map Data in parallel
+    Promise.all([
+        getTelemetry(selectedYear, selectedRound, sessionType, driver),
+        getTrackMap(selectedYear, selectedRound, sessionType, driver),
+        getTyreStrategy(selectedYear, selectedRound, sessionType, driver)
+    ]).then(([telData, mapData, stratData]) => {
+        setTelemetryData(telData.telemetry);
+        setTrackData(mapData.track_data);
+        setStrategyData(stratData.strategy);
+        setLoading(false);
     });
   };
 
@@ -92,14 +104,11 @@ function App() {
         onRaceSelect={(round) => loadSession(round, 'R')}
       />
 
-      {/* 2. MAIN CONTENT AREA (Flex Column) */}
+      {/* 2. MAIN CONTENT AREA */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f5f7fa' }}>
         
-        {/* === TOP SECTION (Fixed/Pinned) === */}
-        {/* This section will NOT scroll. It stays at the top. */}
+        {/* HEADER (Fixed) */}
         <div style={{ borderBottom: '1px solid #ddd', background: 'white', padding: '15px 25px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', zIndex: 10 }}>
-          
-          {/* Header & Controls */}
           {selectedRound ? (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
@@ -117,26 +126,35 @@ function App() {
           )}
         </div>
 
-        {/* === TELEMETRY SECTION (Pinned below header if active) === */}
-        {/* We keep this outside the scrollable area so it's always visible */}
-        <div style={{ background: '#f5f7fa', flexShrink: 0 }}> 
+        {/* TELEMETRY DASHBOARD (Fixed Height Container) */}
+        <div style={{ background: '#f5f7fa', flexShrink: 0, borderBottom: '1px solid #e0e0e0' }}> 
             {loading && <div style={{padding: '10px 25px', color: '#666', fontSize: '12px'}}>Fetching Data...</div>}
             
             {telemetryData && (
-              <div style={{ padding: '20px 25px 0 25px' }}>
-                <Telemetry 
-                  data={telemetryData} 
-                  driver1={selectedDriver} 
-                  driver2={comparisonDriver} 
-                  driversList={selectedRaceResults || []}
-                  onComparisonChange={loadComparison}
-                />
+              <div style={{ padding: '20px 25px 0 25px', display: 'flex', gap: '20px' }}>
+                
+                {/* LEFT: Track Map (30% Width) */}
+                <div style={{ width: '30%', minWidth: '300px' }}>
+                    {trackData && <TrackMap data={trackData} driver={selectedDriver} />}
+                </div>
+
+                {/* RIGHT: Telemetry Graphs (70% Width) */}
+                <div style={{ flex: 1 }}>
+
+                    {strategyData && <TyreStrategy strategy={strategyData} />}
+                    <Telemetry 
+                      data={telemetryData} 
+                      driver1={selectedDriver} 
+                      driver2={comparisonDriver} 
+                      driversList={selectedRaceResults || []}
+                      onComparisonChange={loadComparison}
+                    />
+                </div>
               </div>
             )}
         </div>
 
-        {/* === BOTTOM SECTION (Scrollable Table) === */}
-        {/* This div takes up all remaining space and scrolls internally */}
+        {/* RESULTS TABLE (Scrollable Area) */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 25px' }}>
           <ResultsTable 
             results={selectedRaceResults} 
@@ -144,7 +162,6 @@ function App() {
             selectedDriver={selectedDriver} 
             onDriverClick={loadDriverTelemetry} 
           />
-          {/* Add some padding at bottom so the last row isn't stuck to the edge */}
           <div style={{ height: '40px' }}></div>
         </div>
 
