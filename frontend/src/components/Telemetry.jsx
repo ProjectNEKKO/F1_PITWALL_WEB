@@ -1,47 +1,28 @@
 import React from 'react';
-import TelemetryChart from './TelemetryChart'; // Ensure TelemetryChart.jsx is moved to /components
+import TelemetryChart from './TelemetryChart';
+import { getTeamColor } from '../utils/f1Teams'; 
 
-function Telemetry({ data, driver1, driver2, driversList, onComparisonChange }) {
-  if (!data) return null;
+// 1. ADD 'deltaData' HERE vvv
+function Telemetry({ data, deltaData, driver1, driver2, driversList, onComparisonChange }) {
+  
+  const resolveColor = (driverCode) => {
+    if (!driversList || !driverCode) return '#ff0000';
+    const driverInfo = driversList.find(d => d.Driver === driverCode);
+    return getTeamColor(driverInfo?.Team);
+  };
+
+  const color1 = resolveColor(driver1);
+  const color2 = resolveColor(driver2);
 
   return (
-    <div style={{ marginBottom: '20px' }}>
-      <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          background: 'white', 
-          padding: '15px 20px', 
-          borderRadius: '10px 10px 0 0',
-          borderBottom: '1px solid #eee'
-      }}>
-          <h3 style={{ margin: 0 }}>
-              Telemetry: <span style={{color: '#e10600'}}>{driver1}</span> 
-              {driver2 && <span style={{color: '#2b6ef9'}}> vs {driver2}</span>}
-          </h3>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{fontSize: '13px', color: '#666', fontWeight: 'bold'}}>COMPARE:</span>
-              <select 
-                  onChange={(e) => onComparisonChange(e.target.value)}
-                  value={driver2 || ""}
-                  style={{ padding: '6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '13px' }}
-              >
-                  <option value="">-- Solo View --</option>
-                  {driversList
-                      .filter(r => r.Driver !== driver1)
-                      .map(r => (
-                          <option key={r.Driver} value={r.Driver}>{r.Driver}</option>
-                      ))
-                  }
-              </select>
-          </div>
-      </div>
-
+    <div>
       <TelemetryChart 
-          data={data} 
-          driver1={driver1} 
-          driver2={driver2} 
+         data={data}
+         deltaData={deltaData} // 2. PASS IT DOWN HERE vvv
+         driver1={driver1} 
+         driver2={driver2} 
+         color1={color1} 
+         color2={color2} 
       />
     </div>
   );

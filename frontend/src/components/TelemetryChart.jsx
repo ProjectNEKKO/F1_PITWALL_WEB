@@ -1,13 +1,15 @@
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+// 1. ADDED ReferenceLine to imports vvv
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts';
 
-function TelemetryChart({ data, driver1, driver2 }) {
+function TelemetryChart({ data, deltaData, driver1, driver2, color1, color2 }) {
   if (!data) return null;
 
-  const colorDriver1 = "#e10600";
-  const colorDriver2 = "#2b6ef9"; 
+  const c1 = color1 || "#e10600"; 
+  const c2 = color2 || "#2b6ef9"; 
 
   const commonGrid = <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />;
+  
   const commonXAxis = (hideLabel = true) => (
     <XAxis 
       dataKey="Distance" 
@@ -25,7 +27,7 @@ function TelemetryChart({ data, driver1, driver2 }) {
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div style={{ background: 'rgba(0, 0, 0, 0.8)', padding: '10px', borderRadius: '5px', color: 'white', fontSize: '12px', border: '1px solid #444' }}>
+        <div style={{ background: 'rgba(0, 0, 0, 0.9)', padding: '10px', borderRadius: '5px', color: 'white', fontSize: '12px', border: '1px solid #444', minWidth: '150px' }}>
           <p style={{ margin: '0 0 5px 0', fontWeight: 'bold', borderBottom: '1px solid #555', paddingBottom: '3px' }}>
             Dist: {(label/1000).toFixed(2)}km
           </p>
@@ -33,7 +35,10 @@ function TelemetryChart({ data, driver1, driver2 }) {
             <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '2px' }}>
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: entry.color }}></div>
               <span style={{ color: '#ccc' }}>{entry.name}:</span>
-              <span style={{ fontWeight: 'bold' }}>{entry.value}</span>
+              <span style={{ fontWeight: 'bold' }}>
+                 {/* Format Delta values to 3 decimals, others normally */}
+                 {entry.name === 'Delta' ? parseFloat(entry.value).toFixed(3) + 's' : entry.value}
+              </span>
             </div>
           ))}
         </div>
@@ -43,11 +48,35 @@ function TelemetryChart({ data, driver1, driver2 }) {
   };
 
   return (
-    <div style={{ background: 'white', padding: '20px', borderRadius: '0 0 10px 10px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+    <div style={{ background: 'white', padding: '0', borderRadius: '0 0 10px 10px' }}>
       
+      {/* 0. TIME DELTA (THE MISSING PIECE) */}
+      {deltaData && driver2 && (
+        <div style={{ width: '100%', height: 140, marginBottom: '15px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', paddingRight: '20px' }}>
+               <h4 style={{margin: '0 0 5px 10px', fontSize: '11px', color: '#888', textTransform: 'uppercase'}}>
+                  Time Delta (s)
+               </h4>
+               <span style={{ fontSize: '10px', color: '#666' }}>▲ {driver1} Faster | ▼ {driver2} Faster</span>
+            </div>
+            <ResponsiveContainer>
+            <LineChart data={deltaData} syncId="f1Telemetry" margin={{ top: 5, right: 20, left: 0, bottom: 0 }}>
+                {commonGrid}
+                {commonXAxis(true)}
+                <ReferenceLine y={0} stroke="#666" strokeDasharray="3 3" />
+                <YAxis domain={['auto', 'auto']} width={40} tick={{fontSize: 10}} />
+                <Tooltip content={<CustomTooltip />} />
+                
+                {/* We use Driver 1's color because the line represents THEIR gain */}
+                <Line type="monotone" dataKey="Delta" name="Delta" stroke={c1} strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+            </LineChart>
+            </ResponsiveContainer>
+        </div>
+      )}
+
       {/* 1. SPEED */}
       <div style={{ width: '100%', height: 200, marginBottom: '10px' }}>
-        <h4 style={{margin: '0 0 0 10px', fontSize: '11px', color: '#888', textTransform: 'uppercase'}}>Speed (km/h)</h4>
+        <h4 style={{margin: '0 0 5px 10px', fontSize: '11px', color: '#888', textTransform: 'uppercase'}}>Speed (km/h)</h4>
         <ResponsiveContainer>
           <LineChart data={data} syncId="f1Telemetry" margin={{ top: 5, right: 20, left: 0, bottom: 0 }}>
             {commonGrid}
@@ -55,55 +84,53 @@ function TelemetryChart({ data, driver1, driver2 }) {
             <YAxis domain={[0, 360]} hide />
             <Tooltip content={<CustomTooltip />} />
             <Legend verticalAlign="top" height={36} iconType="circle"/>
-            <Line type="monotone" dataKey="Speed" name={driver1} stroke={colorDriver1} strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
-            {driver2 && <Line type="monotone" dataKey="Speed2" name={driver2} stroke={colorDriver2} strokeWidth={2} dot={false} strokeDasharray="3 3" />}
+            <Line type="monotone" dataKey="Speed" name={driver1} stroke={c1} strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+            {driver2 && <Line type="monotone" dataKey="Speed2" name={driver2} stroke={c2} strokeWidth={2} dot={false} strokeDasharray="3 3" />}
           </LineChart>
         </ResponsiveContainer>
       </div>
 
       {/* 2. THROTTLE */}
       <div style={{ width: '100%', height: 100, marginBottom: '10px' }}>
-        <h4 style={{margin: '0 0 0 10px', fontSize: '11px', color: '#888', textTransform: 'uppercase'}}>Throttle (%)</h4>
+        <h4 style={{margin: '0 0 5px 10px', fontSize: '11px', color: '#888', textTransform: 'uppercase'}}>Throttle (%)</h4>
         <ResponsiveContainer>
           <LineChart data={data} syncId="f1Telemetry" margin={{ top: 5, right: 20, left: 0, bottom: 0 }}>
             {commonGrid}
             {commonXAxis(true)}
             <YAxis domain={[0, 105]} hide />
             <Tooltip content={<CustomTooltip />} />
-            <Line type="step" dataKey="Throttle" name="Throttle" stroke={colorDriver1} strokeWidth={1.5} dot={false} />
-            {driver2 && <Line type="step" dataKey="Throttle2" name="Throttle" stroke={colorDriver2} strokeWidth={1.5} dot={false} strokeDasharray="3 3" />}
+            <Line type="step" dataKey="Throttle" name="Throttle" stroke={c1} strokeWidth={1.5} dot={false} />
+            {driver2 && <Line type="step" dataKey="Throttle2" name="Throttle" stroke={c2} strokeWidth={1.5} dot={false} strokeDasharray="3 3" />}
           </LineChart>
         </ResponsiveContainer>
       </div>
 
       {/* 3. BRAKE */}
       <div style={{ width: '100%', height: 60, marginBottom: '10px' }}>
-        <h4 style={{margin: '0 0 0 10px', fontSize: '11px', color: '#888', textTransform: 'uppercase'}}>Brake</h4>
+        <h4 style={{margin: '0 0 5px 10px', fontSize: '11px', color: '#888', textTransform: 'uppercase'}}>Brake</h4>
         <ResponsiveContainer>
           <LineChart data={data} syncId="f1Telemetry" margin={{ top: 5, right: 20, left: 0, bottom: 0 }}>
             {commonGrid}
             {commonXAxis(true)}
             <YAxis domain={[0, 1.2]} hide />
             <Tooltip content={<CustomTooltip />} />
-            <Line type="step" dataKey="Brake" name="Brake" stroke={colorDriver1} strokeWidth={2} dot={false} />
-            {driver2 && <Line type="step" dataKey="Brake2" name="Brake" stroke={colorDriver2} strokeWidth={2} dot={false} strokeDasharray="3 3" />}
+            <Line type="step" dataKey="Brake" name="Brake" stroke={c1} strokeWidth={2} dot={false} />
+            {driver2 && <Line type="step" dataKey="Brake2" name="Brake" stroke={c2} strokeWidth={2} dot={false} strokeDasharray="3 3" />}
           </LineChart>
         </ResponsiveContainer>
       </div>
 
-      {/* 4. GEAR (NEW!) */}
+      {/* 4. GEAR */}
       <div style={{ width: '100%', height: 100 }}>
-        <h4 style={{margin: '0 0 0 10px', fontSize: '11px', color: '#888', textTransform: 'uppercase'}}>Gear (1-8)</h4>
+        <h4 style={{margin: '0 0 5px 10px', fontSize: '11px', color: '#888', textTransform: 'uppercase'}}>Gear (1-8)</h4>
         <ResponsiveContainer>
           <LineChart data={data} syncId="f1Telemetry" margin={{ top: 5, right: 20, left: 0, bottom: 0 }}>
             {commonGrid}
             {commonXAxis(false)}
-            {/* Domain 0-9 to keep 8 gears visible */}
             <YAxis domain={[0, 9]} hide />
             <Tooltip content={<CustomTooltip />} />
-            {/* Use type="stepAfter" for sharp gear changes */}
-            <Line type="stepAfter" dataKey="Gear" name="Gear" stroke={colorDriver1} strokeWidth={1.5} dot={false} />
-            {driver2 && <Line type="stepAfter" dataKey="Gear2" name="Gear" stroke={colorDriver2} strokeWidth={1.5} dot={false} strokeDasharray="3 3" />}
+            <Line type="stepAfter" dataKey="Gear" name="Gear" stroke={c1} strokeWidth={1.5} dot={false} />
+            {driver2 && <Line type="stepAfter" dataKey="Gear2" name="Gear" stroke={c2} strokeWidth={1.5} dot={false} strokeDasharray="3 3" />}
           </LineChart>
         </ResponsiveContainer>
       </div>

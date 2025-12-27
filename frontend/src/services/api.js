@@ -25,3 +25,8 @@ export const getTyreStrategy = async (year, round, sessionType, driver) => {
     const res = await fetch(`${BASE_URL}/strategy/${year}/${round}/${sessionType}/${driver}`);
     return res.json();
 };
+
+export const getTimeDelta = async (year, round, sessionType, driver1, driver2) => {
+    const res = await fetch(`${BASE_URL}/delta/${year}/${round}/${sessionType}/${driver1}/${driver2}`);
+    return res.json();
+};

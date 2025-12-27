@@ -231,3 +231,46 @@ def get_tyre_strategy(year: int, round_number: int, session_type: str, driver: s
     except Exception as e:
         print(f"Error: {e}")
         return {"error": str(e)}
+    
+@app.get("/api/delta/{year}/{round_number}/{session_type}/{driver1}/{driver2}")
+def get_time_delta(year: int, round_number: int, session_type: str, driver1: str, driver2: str):
+    try:
+        session = fastf1.get_session(year, round_number, session_type)
+        session.load(telemetry=True, weather=False)
+        
+        # 1. Get Fastest Laps
+        lap1 = session.laps.pick_driver(driver1).pick_fastest()
+        lap2 = session.laps.pick_driver(driver2).pick_fastest()
+        
+        # 2. Calculate Gap using FastF1
+        # We calculate the delta of Lap 1 (Target) relative to Lap 2 (Reference)
+        delta_series = fastf1.utils.delta_time(lap2, lap1)
+        
+        # FIX 1: Handle if FastF1 returns a Tuple instead of a Series
+        if isinstance(delta_series, tuple):
+            delta_series = delta_series[0]
+            
+        # FIX 2: Use Lap 2's distance because the delta is calculated relative to IT
+        dist_series = lap2.get_telemetry()['Distance']
+        
+        # FIX 3: Convert to simple lists to avoid "iloc" errors entirely
+        delta_list = delta_series.to_list()
+        dist_list = dist_series.to_list()
+        
+        # 3. Format for Frontend
+        delta_data = []
+        # Safety: Ensure we don't go out of bounds if lengths differ slightly
+        limit = min(len(delta_list), len(dist_list))
+        
+        for i in range(limit):
+             if i % 4 == 0: # Downsample for speed
+                 delta_data.append({
+                     "Distance": dist_list[i],
+                     "Delta": delta_list[i] 
+                 })
+                 
+        return {"driver1": driver1, "driver2": driver2, "delta_data": delta_data}
+
+    except Exception as e:
+        print(f"Error in delta calculation: {e}")
+        return {"error": str(e)}
