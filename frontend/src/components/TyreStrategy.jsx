@@ -1,63 +1,106 @@
 import React from 'react';
-import './TyreStrategy.css'; // <--- Import the CSS
+import './TyreStrategy.css'; 
 
 function TyreStrategy({ strategy }) {
-  if (!strategy || strategy.length === 0) return null;
+  if (!strategy || strategy.length === 0) {
+    return <div style={{color: '#999', fontSize: '13px', fontStyle: 'italic', padding: '10px'}}>No tyre data available</div>;
+  }
 
-  const lastStint = strategy[strategy.length - 1];
-  const totalLaps = lastStint.end_lap || lastStint.total_laps || 57;
+  // 1. Calculations
+  const totalLaps = strategy.reduce((acc, stint) => acc + stint.laps_count, 0);
 
-  // Helper to get the right class name
-  const getTyreClass = (name) => {
-    switch (name?.toUpperCase()) {
-      case 'SOFT': return 'tyre-soft';
-      case 'MEDIUM': return 'tyre-medium';
-      case 'HARD': return 'tyre-hard';
-      case 'INTERMEDIATE': return 'tyre-inter';
-      case 'WET': return 'tyre-wet';
-      default: return 'tyre-unknown';
+  // 2. Colors
+  const getCompoundColor = (compound) => {
+    switch (compound) {
+      case 'SOFT': return '#ff3b30';   // Brighter Red
+      case 'MEDIUM': return '#ffcc00'; // Richer Yellow
+      case 'HARD': return '#f2f2f7';   // Clean White/Grey
+      case 'INTERMEDIATE': return '#34c759'; 
+      case 'WET': return '#007aff';    
+      default: return '#8e8e93';
     }
   };
 
+  const getTextColor = (compound) => {
+    return compound === 'HARD' || compound === 'MEDIUM' ? '#1c1c1e' : 'white';
+  };
+
+  // 3. Generate Ruler Ticks (0, 10, 20...)
+  const ticks = [];
+  for (let i = 0; i <= totalLaps; i += 10) {
+    ticks.push(i);
+  }
+  // Always include the finish line
+  if (ticks[ticks.length - 1] !== totalLaps) {
+      ticks.push(totalLaps);
+  }
+
   return (
     <div className="strategy-container">
-      <h4 className="strategy-title">Tyre History & Pit Stops</h4>
+      
+      <div className="strategy-header">
+        <div className="strategy-title">Tyre History</div>
+        <div className="total-laps">{totalLaps} Laps Total</div>
+      </div>
+      
+      {/* Visual Track Wrapper */}
+      <div className="track-wrapper">
+          
+          {/* The Bar itself */}
+          <div className="strategy-track">
+            {strategy.map((stint, index) => {
+              const widthPct = (stint.laps_count / totalLaps) * 100;
+              const textColor = getTextColor(stint.compound);
+              const letter = stint.compound.charAt(0);
+              
+              return (
+                <div 
+                  key={index}
+                  className="stint-block"
+                  style={{ 
+                    width: `${widthPct}%`, 
+                    backgroundColor: getCompoundColor(stint.compound),
+                    color: textColor,
+                    animationDelay: `${index * 0.1}s` // Staggered animation
+                  }}
+                  title={`Stint ${stint.stint}: ${stint.compound} (${stint.laps_count} Laps)`}
+                >
+                  {widthPct > 12 ? (
+                     <span style={{ whiteSpace: 'nowrap' }}>
+                        {letter} <span style={{ opacity: 0.7, fontWeight: 500, fontSize: '11px' }}>L{stint.laps_count}</span>
+                     </span>
+                  ) : widthPct > 5 ? (
+                     letter
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
 
-      <div className="timeline-bar">
-        {strategy.map((stint, index) => {
-            const compoundName = stint.compound || "Unknown";
-            const lapStart = stint.start_lap || 0;
-            const lapEnd = stint.end_lap || (lapStart + 1);
-            const stintLength = stint.laps_count || (lapEnd - lapStart);
-            const widthPct = Math.max((stintLength / totalLaps) * 100, 2);
+          {/* The Ruler below */}
+          <div className="ruler-container">
+              {ticks.map(lap => (
+                  <div 
+                    key={lap} 
+                    style={{ left: `${(lap / totalLaps) * 100}%`, position: 'absolute', bottom: 0 }}
+                  >
+                      <div className="ruler-tick"></div>
+                      <div className="ruler-label">{lap}</div>
+                  </div>
+              ))}
+          </div>
+      </div>
 
-            const isFirst = index === 0;
-            const isLast = index === strategy.length - 1;
-            
-            // Dynamic inline style for width & rounded corners only
-            const dynamicStyle = {
-                width: `${widthPct}%`,
-                borderRight: !isLast ? '2px solid white' : 'none',
-                borderRadius: `${isFirst ? '6px' : '0'} ${isLast ? '6px' : '0'} ${isLast ? '6px' : '0'} ${isFirst ? '6px' : '0'}`
-            };
-
-            return (
-              <div 
-                key={index} 
-                className={`stint-block ${getTyreClass(compoundName)}`}
-                style={dynamicStyle}
-                title={`Stint ${index+1}: ${compoundName} (${stintLength} Laps)`}
-              >
-                <span>{compoundName[0]}</span>
-                
-                {index < strategy.length - 1 && (
-                    <div className="pit-label">
-                       L{Math.round(lapEnd)}
-                    </div>
-                )}
-              </div>
-            );
-        })}
+      {/* Styled Legend */}
+      <div className="strategy-legend">
+        {['SOFT', 'MEDIUM', 'HARD', 'INTERMEDIATE', 'WET'].map(c => (
+            strategy.some(s => s.compound === c) && (
+                <div key={c} className="legend-badge">
+                    <span className="legend-circle" style={{background: getCompoundColor(c)}}></span>
+                    {c}
+                </div>
+            )
+        ))}
       </div>
     </div>
   );

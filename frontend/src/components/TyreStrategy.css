@@ -1,61 +1,147 @@
+/* frontend/src/components/TyreStrategy.css */
+
 .strategy-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   width: 100%;
-  margin-bottom: 30px;
-  font-family: "Segoe UI", Roboto, sans-serif;
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.strategy-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
 }
 
 .strategy-title {
-  margin: 0 0 10px 0;
-  font-size: 12px;
-  color: #666;
+  font-size: 14px;
+  color: #444;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.total-laps {
+  font-size: 12px;
+  color: #888;
   font-weight: 600;
 }
 
-.timeline-bar {
-  display: flex;
+/* TRACK CONTAINER */
+.track-wrapper {
+  position: relative;
   width: 100%;
-  height: 40px;
-  background: #fafafa;
-  /* overflow: hidden is REMOVED intentionally */
+  padding-bottom: 25px; /* Space for the ruler */
 }
 
+/* THE MAIN BAR */
+.strategy-track {
+  display: flex;
+  height: 42px;
+  width: 100%;
+  background: #e0e0e0;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+  position: relative;
+  z-index: 2;
+}
+
+/* INDIVIDUAL STINTS */
 .stint-block {
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative; /* Anchor for the label */
-  font-size: 12px;
+  height: 100%;
+  font-size: 13px;
   font-weight: 700;
-  box-sizing: border-box;
-  transition: all 0.2s ease;
+  position: relative;
+  cursor: help;
+  
+  /* 3D Depth Effect */
+  box-shadow: inset 0 -3px 0 rgba(0,0,0,0.15), inset 0 2px 0 rgba(255,255,255,0.2);
+  
+  /* Separator Line */
+  border-right: 1px solid rgba(255,255,255,0.4);
+  
+  /* Animation */
+  opacity: 0;
+  animation: slideIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
-.stint-block:hover {
-  filter: brightness(1.1); /* Nice hover effect */
+.stint-block:last-child {
+  border-right: none;
 }
 
-.pit-label {
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* RULER / TIMELINE BELOW */
+.ruler-container {
   position: absolute;
-  bottom: -28px;
-  right: -12px;
-  z-index: 10;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 2px 4px;
-  font-size: 10px;
-  color: #666;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  white-space: nowrap;
-  font-weight: normal;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 20px;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
 }
 
-/* Modifier Classes for specific tyre types */
-.tyre-soft { background-color: #ff3b30; color: white; }
-.tyre-medium { background-color: #ffcc00; color: white; }
-.tyre-hard { background-color: #f0f0f0; color: #333; }
-.tyre-inter { background-color: #34c759; color: white; }
-.tyre-wet { background-color: #007aff; color: white; }
-.tyre-unknown { background-color: #8e8e93; color: white; }
+.ruler-tick {
+  position: absolute;
+  bottom: 12px;
+  width: 1px;
+  height: 6px;
+  background-color: #ccc;
+  transform: translateX(-50%);
+}
+
+.ruler-label {
+  position: absolute;
+  bottom: -2px;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: #999;
+  font-weight: 600;
+}
+
+/* MODERN LEGEND */
+.strategy-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 5px;
+  padding-top: 10px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.legend-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: #f8f9fa;
+  border-radius: 20px;
+  border: 1px solid #eee;
+  font-size: 11px;
+  font-weight: 700;
+  color: #555;
+  transition: transform 0.2s;
+}
+
+.legend-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.legend-circle {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(0,0,0,0.1);
+}
