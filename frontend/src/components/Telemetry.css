@@ -1,0 +1,116 @@
+/* frontend/src/components/Telemetry.css */
+
+.telemetry-container {
+  background: white;
+  padding: 20px 0 30px 0; /* More padding at bottom */
+  border-radius: 0 0 12px 12px;
+  font-family: "Segoe UI", Roboto, sans-serif;
+  box-shadow: inset 0 4px 6px -4px rgba(0,0,0,0.1); 
+}
+
+/* SECTION WRAPPERS */
+.chart-section {
+  width: 100%;
+  position: relative;
+  /* HUGE CHANGE: Increased margin from 15px to 40px */
+  margin-bottom: 40px; 
+  padding-bottom: 10px;
+  border-bottom: 1px dashed #eee; /* Subtle separator line */
+}
+
+/* Remove border from the last item */
+.chart-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+/* ADJUSTED HEIGHTS (Taller = Less Squished) */
+.chart-section.delta { height: 160px; }   /* Was 140px */
+.chart-section.speed { height: 280px; }   /* Was 220px (Big jump) */
+.chart-section.throttle { height: 140px; } /* Was 100px */
+.chart-section.brake { height: 80px; }    /* Was 60px */
+.chart-section.gear { height: 120px; margin-bottom: 0; } /* Was 100px */
+
+/* HEADERS & TITLES */
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* Push header UP away from the graph content */
+  margin-bottom: 10px; 
+  padding: 0 20px;
+}
+
+.chart-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #2c3e50; /* Dark Blue-Grey */
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Optional: Add a colored pip next to title for style */
+.chart-title::before {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 14px;
+  background: #e10600; /* F1 Red accent */
+  border-radius: 2px;
+}
+
+.delta-legend {
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  gap: 15px;
+  background: #f9f9f9;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+/* TOOLTIP (Keep the same dark style) */
+.custom-tooltip {
+  background: rgba(15, 15, 15, 0.95);
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 10px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+  min-width: 140px;
+  backdrop-filter: blur(4px);
+  z-index: 100; /* Ensure it floats above everything */
+}
+/* ... (keep tooltip-header, tooltip-item, etc. the same) ... */
+.tooltip-header {
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  border-bottom: 1px solid #444;
+  padding-bottom: 5px;
+  margin-bottom: 8px;
+  font-family: "Consolas", monospace;
+  letter-spacing: 0.5px;
+}
+.tooltip-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 4px;
+  color: #eee;
+}
+.tooltip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+}
+.tooltip-value {
+  font-family: "Consolas", monospace;
+  font-weight: 700;
+}
