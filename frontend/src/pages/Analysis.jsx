@@ -7,6 +7,7 @@ import Telemetry from '../components/Telemetry';
 import TrackMap from '../components/TrackMap';
 import TyreStrategy from '../components/TyreStrategy';
 import { BarChart2, List, ChevronLeft, ChevronRight } from 'lucide-react'; 
+import './Analysis.css'; // <--- IMPORT THE CSS
 
 function Analysis() {
   // Global State
@@ -27,7 +28,7 @@ function Analysis() {
 
   // UI State
   const [activeTab, setActiveTab] = useState('results'); 
-  const [sidebarOpen, setSidebarOpen] = useState(true); // New: Collapse Sidebar
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // 1. Initial Load
   useEffect(() => {
@@ -53,8 +54,6 @@ function Analysis() {
   // 3. Load Telemetry
   const loadDriverTelemetry = (driver) => {
     setActiveTab('telemetry'); 
-    // Auto-collapse sidebar on mobile or small screens could go here
-    // setSidebarOpen(false); 
     
     if (selectedDriver === driver) return;
     setLoading(true);
@@ -79,7 +78,7 @@ function Analysis() {
   const loadComparison = (driver2) => {
     if (!driver2) {
       setComparisonDriver(null);
-      setDeltaData(null); // Clear delta when closing comparison
+      setDeltaData(null); 
       loadDriverTelemetry(selectedDriver); 
       return;
     }
@@ -88,14 +87,13 @@ function Analysis() {
 
     console.log(`🔎 Requesting Delta: ${selectedDriver} vs ${driver2}`);
 
-    // Fetch Telemetry AND Time Delta together
     Promise.all([
         getTelemetry(selectedYear, selectedRound, sessionType, driver2),
         getTimeDelta(selectedYear, selectedRound, sessionType, selectedDriver, driver2)
     ]).then(([newData, deltaRes]) => {
-
-      console.log("📦 API Response:", deltaRes);
       
+      console.log("📦 API Response:", deltaRes);
+
       // 1. Merge Telemetry
       const merged = telemetryData.map((point, i) => {
         const p2 = newData.telemetry[i];
@@ -103,7 +101,7 @@ function Analysis() {
       });
       setTelemetryData(merged);
       
-      // 2. Set Delta Data (Check for errors first)
+      // 2. Set Delta Data
       if (deltaRes && !deltaRes.error) {
           setDeltaData(deltaRes.delta_data);
       }
@@ -112,34 +110,17 @@ function Analysis() {
     });
   };
 
-  // --- STYLES ---
-  const tabBtnStyle = (isActive) => ({
-    padding: '8px 16px',
-    cursor: 'pointer',
-    borderRadius: '6px',
-    background: isActive ? '#e10600' : 'transparent',
-    color: isActive ? 'white' : '#666',
-    fontWeight: '600',
-    fontSize: '13px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    transition: 'all 0.2s'
-  });
+  const currentRace = races.find(r => r.RoundNumber === selectedRound);
+  console.log("🏁 Current Race Data:", currentRace);
 
   return (
-    <div style={{ display: 'flex', height: '100vh', fontFamily: '"Segoe UI", Roboto, sans-serif', background: '#f5f7fa', overflow: 'hidden' }}>
+    <div className="analysis-container">
       
       {/* 1. COLLAPSIBLE SIDEBAR CONTAINER */}
-      <div style={{ 
-          width: sidebarOpen ? '260px' : '0px', 
-          opacity: sidebarOpen ? 1 : 0,
-          transition: 'all 0.3s ease',
-          overflow: 'hidden',
-          borderRight: '1px solid #ddd',
-          background: 'white',
-          position: 'relative'
-      }}>
+      <div 
+        className="sidebar-wrapper"
+        style={{ width: sidebarOpen ? '260px' : '0px', opacity: sidebarOpen ? 1 : 0 }} // Keep dynamic width inline
+      >
           <Sidebar 
             races={races} 
             selectedYear={selectedYear} 
@@ -150,14 +131,14 @@ function Analysis() {
       </div>
 
       {/* 2. MAIN CONTENT AREA */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <div className="main-content">
         
-        {/* COMPACT HEADER */}
-        <div style={{ background: 'white', borderBottom: '1px solid #ddd', padding: '12px 25px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+        {/* HEADER */}
+        <div className="header-bar">
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <div className="header-title-group">
              {/* Toggle Sidebar Button */}
-             <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#666', padding: 0, display: 'flex' }}>
+             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="toggle-btn">
                 {sidebarOpen ? <ChevronLeft size={20}/> : <ChevronRight size={20}/>}
              </button>
 
@@ -173,29 +154,42 @@ function Analysis() {
              )}
           </div>
 
-          {/* INLINE TABS & CONTROLS (Saves vertical space) */}
+          {/* TABS & CONTROLS */}
           {selectedRound && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-               <div style={{ display: 'flex', background: '#f0f2f5', padding: '4px', borderRadius: '8px' }}>
-                  <div style={tabBtnStyle(activeTab === 'results')} onClick={() => setActiveTab('results')}>
+               <div className="tabs-container">
+                  <button 
+                    className={`tab-btn ${activeTab === 'results' ? 'active' : ''}`} 
+                    onClick={() => setActiveTab('results')}
+                  >
                     <List size={16} /> Classification
-                  </div>
-                  <div style={tabBtnStyle(activeTab === 'telemetry')} onClick={() => setActiveTab('telemetry')}>
+                  </button>
+                  <button 
+                    className={`tab-btn ${activeTab === 'telemetry' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('telemetry')}
+                  >
                     <BarChart2 size={16} /> Telemetry
-                  </div>
+                  </button>
                </div>
-               <div style={{ height: '20px', width: '1px', background: '#ddd' }}></div>
-               <SessionControls sessionType={sessionType} onSessionChange={(type) => loadSession(selectedRound, type)} />
+               
+               <div className="separator"></div>
+               
+               <SessionControls 
+                  sessionType={sessionType} 
+                  onSessionChange={(type) => loadSession(selectedRound, type)}
+                  // 👇 PASS THE RACE DATA HERE
+                  raceData={races.find(r => r.RoundNumber === selectedRound)} 
+              />
             </div>
           )}
         </div>
 
-        {/* SCROLLABLE CONTENT (100% Width) */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
+        {/* SCROLLABLE CONTENT */}
+        <div className="scrollable-area">
            
            {/* VIEW 1: RESULTS TABLE */}
            {activeTab === 'results' && selectedRound && (
-             <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', overflow: 'hidden' }}>
+             <div className="card" style={{padding: 0, overflow: 'hidden'}}>
                 <ResultsTable 
                   results={selectedRaceResults} 
                   sessionType={sessionType} 
@@ -207,42 +201,42 @@ function Analysis() {
 
            {/* VIEW 2: TELEMETRY (BENTO GRID LAYOUT) */}
            {activeTab === 'telemetry' && selectedDriver && (
-             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '40px' }}>
+             <div className="bento-grid">
                 
-                {/* ROW 1: STRATEGY (Full Width) */}
+                {/* ROW 1: STRATEGY */}
                 {strategyData && (
-                  <div style={{ background: 'white', padding: '15px', borderRadius: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
+                  <div className="card" style={{padding: '15px'}}>
                     <TyreStrategy strategy={strategyData} />
                   </div>
                 )}
 
-                {/* ROW 2: MAP & STATS (Split 30% / 70%) */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) 2fr', gap: '20px' }}>
+                {/* ROW 2: MAP & STATS */}
+                <div className="bento-row-split">
                     
                     {/* MAP CARD */}
-                    <div style={{ background: 'white', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.02)', height: '320px' }}>
-                      <h4 style={{ margin: '0 0 15px 0', fontSize: '14px', color: '#666', fontWeight: '700' }}>TRACK LAYOUT</h4>
+                    <div className="card" style={{height: '320px'}}>
+                      <h4 className="card-title">TRACK LAYOUT</h4>
                       {trackData ? <TrackMap data={trackData} driver={selectedDriver} /> : <div style={{height: '100%', background: '#f5f5f5', borderRadius: '8px'}}/>}
                     </div>
 
-                    {/* STATS CARD (Placeholder stats for now) */}
-                    <div style={{ background: 'white', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', textAlign: 'center' }}>
-                          <div style={{ padding: '20px', background: '#f8f9fa', borderRadius: '12px' }}>
-                             <div style={{ fontSize: '12px', color: '#888', marginBottom: '5px' }}>TOP SPEED</div>
-                             <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1a1a1a' }}>
+                    {/* STATS CARD */}
+                    <div className="card center-content">
+                       <div className="stats-grid">
+                          <div className="stat-box">
+                             <div className="stat-label">TOP SPEED</div>
+                             <div className="stat-value">
                                {Math.max(...(telemetryData?.map(d => d.Speed) || [0]))} km/h
                              </div>
                           </div>
-                          <div style={{ padding: '20px', background: '#f8f9fa', borderRadius: '12px' }}>
-                             <div style={{ fontSize: '12px', color: '#888', marginBottom: '5px' }}>AVG SPEED</div>
-                             <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1a1a1a' }}>
+                          <div className="stat-box">
+                             <div className="stat-label">AVG SPEED</div>
+                             <div className="stat-value">
                                {Math.round(telemetryData?.reduce((a, b) => a + b.Speed, 0) / (telemetryData?.length || 1))} km/h
                              </div>
                           </div>
-                          <div style={{ padding: '20px', background: '#f8f9fa', borderRadius: '12px' }}>
-                             <div style={{ fontSize: '12px', color: '#888', marginBottom: '5px' }}>GEAR SHIFTS</div>
-                             <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1a1a1a' }}>
+                          <div className="stat-box">
+                             <div className="stat-label">GEAR SHIFTS</div>
+                             <div className="stat-value">
                                {telemetryData?.filter((d, i, arr) => i > 0 && d.Gear !== arr[i-1].Gear).length || 0}
                              </div>
                           </div>
@@ -250,11 +244,11 @@ function Analysis() {
                     </div>
                 </div>
 
-                {/* ROW 3: TELEMETRY GRAPHS (Full Width) */}
-                <div style={{ background: 'white', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
+                {/* ROW 3: TELEMETRY GRAPHS */}
+                <div className="card">
                     
-                    {/* --- THIS IS THE DROPDOWN HEADER --- */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    {/* DROPDOWN HEADER */}
+                    <div className="dropdown-header">
                       <h4 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: '#1a1a1a' }}>
                         TELEMETRY DATA 
                         {comparisonDriver && <span style={{fontWeight: 'normal', color: '#666', marginLeft: '10px'}}>vs {comparisonDriver}</span>}
@@ -263,9 +257,9 @@ function Analysis() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <span style={{ fontSize: '13px', color: '#666' }}>Compare with:</span>
                         <select 
+                          className="compare-select"
                           onChange={(e) => loadComparison(e.target.value)} 
                           value={comparisonDriver || ""}
-                          style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '13px', cursor: 'pointer', background: '#f8f9fa' }}
                         >
                           <option value="">-- Solo View --</option>
                           {selectedRaceResults && selectedRaceResults.map(d => (
@@ -274,11 +268,11 @@ function Analysis() {
                         </select>
                       </div>
                     </div>
-                    {/* ----------------------------------- */}
+                    {/* ----------------- */}
 
                     <Telemetry 
                       data={telemetryData} 
-                      deltaData={deltaData} // We will hook up delta next
+                      deltaData={deltaData}
                       driver1={selectedDriver} 
                       driver2={comparisonDriver} 
                       driversList={selectedRaceResults || []} 

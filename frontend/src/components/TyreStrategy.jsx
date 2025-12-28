@@ -1,56 +1,63 @@
 import React from 'react';
+import './TyreStrategy.css'; // <--- Import the CSS
 
 function TyreStrategy({ strategy }) {
-  if (!strategy) return null;
+  if (!strategy || strategy.length === 0) return null;
 
-  // Official F1 Tyre Colors
-  const getTyreColor = (compound) => {
-    switch (compound?.toUpperCase()) {
-      case 'SOFT': return '#ff3333';   // Red
-      case 'MEDIUM': return '#ffe600'; // Yellow
-      case 'HARD': return '#ffffff';   // White
-      case 'INTERMEDIATE': return '#39b54a'; // Green
-      case 'WET': return '#005aff';    // Blue
-      default: return '#888';
+  const lastStint = strategy[strategy.length - 1];
+  const totalLaps = lastStint.end_lap || lastStint.total_laps || 57;
+
+  // Helper to get the right class name
+  const getTyreClass = (name) => {
+    switch (name?.toUpperCase()) {
+      case 'SOFT': return 'tyre-soft';
+      case 'MEDIUM': return 'tyre-medium';
+      case 'HARD': return 'tyre-hard';
+      case 'INTERMEDIATE': return 'tyre-inter';
+      case 'WET': return 'tyre-wet';
+      default: return 'tyre-unknown';
     }
   };
 
-  // Calculate total laps to scale the bars correctly
-  const totalLaps = strategy.reduce((acc, s) => acc + s.laps_count, 0);
-
   return (
-    <div style={{ marginBottom: '15px', padding: '10px', background: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-      <h4 style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#666', textTransform: 'uppercase' }}>Tyre Strategy</h4>
-      
-      {/* The Timeline Bar */}
-      <div style={{ display: 'flex', height: '25px', width: '100%', borderRadius: '4px', overflow: 'hidden', background: '#333' }}>
-        {strategy.map((stint, index) => (
-          <div 
-            key={index}
-            style={{ 
-              width: `${(stint.laps_count / totalLaps) * 100}%`, // Proportional width
-              background: getTyreColor(stint.compound),
-              borderRight: '2px solid #222', // Separator line
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'black',
-              fontSize: '10px',
-              fontWeight: 'bold',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap'
-            }}
-            title={`Stint ${stint.stint}: ${stint.compound} (Laps ${stint.start_lap}-${stint.end_lap})`}
-          >
-            {stint.compound ? stint.compound[0] : "?"} {/* Shows 'S', 'M', 'H' */}
-          </div>
-        ))}
-      </div>
-      
-      {/* Legend below bar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px', fontSize: '10px', color: '#888' }}>
-        <span>Lap 1</span>
-        <span>Lap {totalLaps}</span>
+    <div className="strategy-container">
+      <h4 className="strategy-title">Tyre History & Pit Stops</h4>
+
+      <div className="timeline-bar">
+        {strategy.map((stint, index) => {
+            const compoundName = stint.compound || "Unknown";
+            const lapStart = stint.start_lap || 0;
+            const lapEnd = stint.end_lap || (lapStart + 1);
+            const stintLength = stint.laps_count || (lapEnd - lapStart);
+            const widthPct = Math.max((stintLength / totalLaps) * 100, 2);
+
+            const isFirst = index === 0;
+            const isLast = index === strategy.length - 1;
+            
+            // Dynamic inline style for width & rounded corners only
+            const dynamicStyle = {
+                width: `${widthPct}%`,
+                borderRight: !isLast ? '2px solid white' : 'none',
+                borderRadius: `${isFirst ? '6px' : '0'} ${isLast ? '6px' : '0'} ${isLast ? '6px' : '0'} ${isFirst ? '6px' : '0'}`
+            };
+
+            return (
+              <div 
+                key={index} 
+                className={`stint-block ${getTyreClass(compoundName)}`}
+                style={dynamicStyle}
+                title={`Stint ${index+1}: ${compoundName} (${stintLength} Laps)`}
+              >
+                <span>{compoundName[0]}</span>
+                
+                {index < strategy.length - 1 && (
+                    <div className="pit-label">
+                       L{Math.round(lapEnd)}
+                    </div>
+                )}
+              </div>
+            );
+        })}
       </div>
     </div>
   );

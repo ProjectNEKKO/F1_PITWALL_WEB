@@ -1,70 +1,99 @@
 import React from 'react';
+import { getTeamColor } from '../utils/f1Teams';
+import './ResultsTable.css'; 
 
 function ResultsTable({ results, sessionType, selectedDriver, onDriverClick }) {
-  if (!results) return null;
+  if (!results || results.length === 0) {
+      return <div style={{padding: '20px', textAlign: 'center', color: '#888'}}>No results data available.</div>;
+  }
+
+  // Helper: Check if this is ANY kind of Qualifying (Standard Q or Sprint SQ)
+  const isQualifying = sessionType === 'Q' || sessionType === 'SQ';
+
+  const getRaceTime = (item) => {
+    return item.Time || item.time || item.Status || item.status || "+1 Lap";
+  };
 
   return (
-    <table style={{ width: '100%', borderCollapse: 'collapse', background: 'white', fontSize: '13px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
-      <thead>
-        <tr style={{ background: '#15151e', color: '#949498', textAlign: 'left', textTransform: 'uppercase' }}>
-          <th style={{ padding: '12px' }}>Pos</th>
-          <th style={{ padding: '12px' }}>No</th>
-          <th style={{ padding: '12px' }}>Driver</th>
-          <th style={{ padding: '12px' }}>Team</th>
-          
-          {sessionType === 'Q' ? (
-            <>
-              <th style={{ padding: '12px' }}>Q1</th>
-              <th style={{ padding: '12px' }}>Q2</th>
-              <th style={{ padding: '12px' }}>Q3</th>
-            </>
-          ) : (
-            <th style={{ padding: '12px' }}>Time / Gap</th>
-          )}
-
-          <th style={{ padding: '12px' }}>Laps</th>
-          
-          {['R', 'S'].includes(sessionType) && (
-              <th style={{ padding: '12px' }}>Pts</th>
-          )}
-        </tr>
-      </thead>
-      <tbody>
-        {results.map((row, index) => (
-          <tr 
-              key={index} 
-              onClick={() => onDriverClick(row.Driver)}
-              style={{ 
-                  borderBottom: '1px solid #eee', 
-                  height: '45px', 
-                  cursor: 'pointer',
-                  background: selectedDriver === row.Driver ? '#ffecec' : (index % 2 === 0 ? 'white' : '#fafafa')
-              }}
-          >
-            <td style={{ padding: '0 12px', fontWeight: 'bold' }}>{row.Position}</td>
-            <td style={{ padding: '0 12px', color: '#e10600', fontWeight: 'bold' }}>{row.DriverNumber}</td>
-            <td style={{ padding: '0 12px', fontWeight: 'bold' }}>{row.Driver}</td>
-            <td style={{ padding: '0 12px', color: '#666' }}>{row.Team}</td>
+    <div className="table-container">
+      <table className="results-table">
+        <thead>
+          <tr>
+            <th style={{width: '50px'}}>Pos</th>
+            <th style={{width: '50px'}}>No</th>
+            <th>Driver</th>
+            <th>Team</th>
             
-            {sessionType === 'Q' ? (
-              <>
-                <td style={{ padding: '0 12px', fontFamily: 'monospace', color: '#666' }}>{row.Q1}</td>
-                <td style={{ padding: '0 12px', fontFamily: 'monospace', color: '#666' }}>{row.Q2}</td>
-                <td style={{ padding: '0 12px', fontFamily: 'monospace', color: 'black', fontWeight: 'bold' }}>{row.Q3}</td>
-              </>
+            {/* CONDITIONAL HEADERS: Show 3 columns for Q or SQ */}
+            {isQualifying ? (
+                <>
+                    <th>Q1</th>
+                    <th>Q2</th>
+                    <th>Q3</th>
+                </>
             ) : (
-              <td style={{ padding: '0 12px', fontFamily: 'monospace' }}>{row.Time}</td>
+                <th>Time/Status</th>
             )}
-
-            <td style={{ padding: '0 12px' }}>{row.Laps}</td>
             
-            {['R', 'S'].includes(sessionType) && (
-                <td style={{ padding: '0 12px', fontWeight: 'bold' }}>{row.Points}</td>
-            )}
+            <th style={{textAlign: 'right'}}>Pts/Laps</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {results.map((item, index) => {
+            const pos = item.Position || item.position || index + 1;
+            const num = item.DriverNumber || item.driver_number || "";
+            const name = item.FullName || item.full_name || item.BroadcastName || item.Driver || item.Abbreviation || "Unknown"; 
+            const team = item.TeamName || item.team_name || item.Team || "Unknown Team";
+            const pointsOrLaps = (sessionType === 'R' || sessionType === 'S')
+                ? (item.Points || item.points || 0) 
+                : (item.Laps || item.laps || 0);
+            
+            const driverId = item.Driver || item.Abbreviation || item.code || "UNK";
+
+            return (
+                <tr 
+                    key={index} 
+                    onClick={() => onDriverClick && onDriverClick(driverId)}
+                    className={selectedDriver === driverId ? 'active-row' : ''}
+                >
+                <td>{pos}</td>
+                <td style={{color: getTeamColor(team), fontWeight: 'bold'}}>{num}</td>
+                
+                <td className="driver-cell">{String(name).toUpperCase()}</td>
+                
+                <td>
+                    <span className="team-dot" style={{backgroundColor: getTeamColor(team)}}></span>
+                    {team}
+                </td>
+
+                {/* CONDITIONAL DATA CELLS */}
+                {isQualifying ? (
+                    <>
+                        <td style={{fontFamily: 'monospace', fontSize: '12px', color: '#666'}}>
+                            {item.Q1 || item.q1 || "--"}
+                        </td>
+                        <td style={{fontFamily: 'monospace', fontSize: '12px', color: '#666'}}>
+                            {item.Q2 || item.q2 || "--"}
+                        </td>
+                        <td style={{fontFamily: 'monospace', fontSize: '12px', fontWeight: 'bold', color: '#333'}}>
+                            {item.Q3 || item.q3 || "--"}
+                        </td>
+                    </>
+                ) : (
+                    <td style={{fontFamily: 'monospace', fontSize: '12px'}}>
+                        {getRaceTime(item)}
+                    </td>
+                )}
+
+                <td style={{textAlign: 'right', fontWeight: 'bold'}}>
+                    {pointsOrLaps}
+                </td>
+                </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }
 

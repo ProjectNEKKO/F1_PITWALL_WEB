@@ -1,5 +1,5 @@
 import React from 'react';
-// 1. ADDED ReferenceLine to imports vvv
+// FIX: Removed Defs, LinearGradient, Stop from this import list
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts';
 
 function TelemetryChart({ data, deltaData, driver1, driver2, color1, color2 }) {
@@ -7,6 +7,22 @@ function TelemetryChart({ data, deltaData, driver1, driver2, color1, color2 }) {
 
   const c1 = color1 || "#e10600"; 
   const c2 = color2 || "#2b6ef9"; 
+
+  // --- 1. CALCULATE GRADIENT OFFSET ---
+  const getGradientOffset = () => {
+    if (!deltaData || deltaData.length === 0) return 0;
+    
+    const dataMax = Math.max(...deltaData.map((i) => i.Delta));
+    const dataMin = Math.min(...deltaData.map((i) => i.Delta));
+  
+    if (dataMax <= 0) return 0;
+    if (dataMin >= 0) return 1;
+  
+    return dataMax / (dataMax - dataMin);
+  };
+  
+  const off = getGradientOffset();
+  // -------------------------------------
 
   const commonGrid = <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />;
   
@@ -36,7 +52,6 @@ function TelemetryChart({ data, deltaData, driver1, driver2, color1, color2 }) {
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: entry.color }}></div>
               <span style={{ color: '#ccc' }}>{entry.name}:</span>
               <span style={{ fontWeight: 'bold' }}>
-                 {/* Format Delta values to 3 decimals, others normally */}
                  {entry.name === 'Delta' ? parseFloat(entry.value).toFixed(3) + 's' : entry.value}
               </span>
             </div>
@@ -50,25 +65,35 @@ function TelemetryChart({ data, deltaData, driver1, driver2, color1, color2 }) {
   return (
     <div style={{ background: 'white', padding: '0', borderRadius: '0 0 10px 10px' }}>
       
-      {/* 0. TIME DELTA (THE MISSING PIECE) */}
+      {/* 0. TIME DELTA (With Split Colors!) */}
       {deltaData && driver2 && (
         <div style={{ width: '100%', height: 140, marginBottom: '15px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', paddingRight: '20px' }}>
                <h4 style={{margin: '0 0 5px 10px', fontSize: '11px', color: '#888', textTransform: 'uppercase'}}>
                   Time Delta (s)
                </h4>
-               <span style={{ fontSize: '10px', color: '#666' }}>▲ {driver1} Faster | ▼ {driver2} Faster</span>
+               <span style={{ fontSize: '10px', color: '#666' }}>
+                  <span style={{color: c2}}>▲ {driver2} Faster</span> | <span style={{color: c1}}>▼ {driver1} Faster</span>
+               </span>
             </div>
             <ResponsiveContainer>
             <LineChart data={deltaData} syncId="f1Telemetry" margin={{ top: 5, right: 20, left: 0, bottom: 0 }}>
+                {/* SVG Definitions for the Gradient */}
+                <defs>
+                  <linearGradient id="splitColor" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset={off} stopColor={c2} stopOpacity={1} />
+                    <stop offset={off} stopColor={c1} stopOpacity={1} />
+                  </linearGradient>
+                </defs>
+                
                 {commonGrid}
                 {commonXAxis(true)}
                 <ReferenceLine y={0} stroke="#666" strokeDasharray="3 3" />
                 <YAxis domain={['auto', 'auto']} width={40} tick={{fontSize: 10}} />
                 <Tooltip content={<CustomTooltip />} />
                 
-                {/* We use Driver 1's color because the line represents THEIR gain */}
-                <Line type="monotone" dataKey="Delta" name="Delta" stroke={c1} strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+                {/* Apply the gradient */}
+                <Line type="monotone" dataKey="Delta" name="Delta" stroke="url(#splitColor)" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
             </LineChart>
             </ResponsiveContainer>
         </div>

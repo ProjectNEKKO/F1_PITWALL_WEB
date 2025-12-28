@@ -1,0 +1,37 @@
+.controls-container {
+  display: flex;
+  background: #f0f2f5;
+  padding: 4px;
+  border-radius: 8px;
+  gap: 2px;
+}
+
+.session-btn {
+  border: none;
+  background: transparent;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 35px;
+}
+
+.session-btn:hover {
+  background: rgba(0,0,0,0.05);
+  color: #333;
+}
+
+/* Active State (Red Background) */
+.session-btn.active {
+  background-color: #e10600;
+  color: white;
+  box-shadow: 0 2px 4px rgba(225, 6, 0, 0.3);
+}
+
+/* Specific styling for Race button to make it stand out */
+.session-btn.race-btn {
+  font-weight: 800;
+}

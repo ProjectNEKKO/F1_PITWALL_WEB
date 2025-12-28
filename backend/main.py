@@ -1,8 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import fastf1
+import fastf1.utils
 import os
-import pandas as pd  # <--- THIS WAS MISSING!
+import pandas as pd
+import numpy as np # Needed for math
 
 # 1. Setup the App
 app = FastAPI()
@@ -32,12 +34,14 @@ fastf1.Cache.enable_cache(cache_dir)
 def read_root():
     return {"message": "Backend is online", "status": "OK"}
 
-# 5. Schedule Endpoint
+# 5. Schedule Endpoint (UPDATED with EventFormat)
 @app.get("/api/schedule/{year}")
 def get_schedule(year: int):
+    print("✅ RELOADING SCHEDULE... IF YOU SEE THIS, THE NEW CODE IS WORKING!")
     try:
         schedule = fastf1.get_event_schedule(year)
-        json_data = schedule[['RoundNumber', 'Country', 'Location', 'EventName', 'EventDate']].to_dict(orient='records')
+        # FIX: Added 'EventFormat' so frontend knows if it's a Sprint weekend
+        json_data = schedule[['RoundNumber', 'Country', 'Location', 'EventName', 'EventDate', 'EventFormat']].to_dict(orient='records')
         return {"year": year, "races": json_data}
     except Exception as e:
         return {"error": str(e)}
@@ -49,23 +53,20 @@ def get_session_results(year: int, round_number: int, session_type: str):
         session.load()
         results = []
 
-        # 1. Global Lap Counter (Works for ALL session types)
-        # This counts how many times each driver appears in the lap data
         total_laps_per_driver = session.laps['Driver'].value_counts()
 
-        # === CASE A: QUALIFYING (Q) ===
-        if session_type == 'Q':
+        # === UPDATE 1: Add 'SQ' to this list ===
+        # Treat Sprint Qualifying exactly like normal Qualifying
+        if session_type in ['Q', 'SQ']: 
             results_df = session.results
             results_df['Position'] = results_df['Position'].fillna(0)
 
             for index, row in results_df.iterrows():
-                # Helper to format time
                 def format_time(val):
                     if pd.isnull(val) or val == pd.NaT:
                         return ""
                     return str(val).split('days ')[-1][:-3]
 
-                # Get the manual lap count we calculated above
                 driver_lap_count = int(total_laps_per_driver.get(row['Abbreviation'], 0))
 
                 results.append({
@@ -76,10 +77,10 @@ def get_session_results(year: int, round_number: int, session_type: str):
                     "Q1": format_time(row['Q1']),
                     "Q2": format_time(row['Q2']),
                     "Q3": format_time(row['Q3']),
-                    "Laps": driver_lap_count # <--- Uses manual count now
+                    "Laps": driver_lap_count
                 })
 
-        # === CASE B: RACE (R) & SPRINT (S) ===
+        # CASE B: RACE & SPRINT
         elif session_type in ['R', 'S']:
             results_df = session.results
             results_df['Position'] = results_df['Position'].fillna(0)
@@ -99,10 +100,10 @@ def get_session_results(year: int, round_number: int, session_type: str):
                     "Team": row['TeamName'],
                     "Time": time_str,
                     "Points": float(row['Points']),
-                    "Laps": int(row['Laps']) # Race usually has correct laps in results_df
+                    "Laps": int(row['Laps'])
                 })
 
-        # === CASE C: PRACTICE (FP1, FP2, FP3) ===
+        # CASE C: PRACTICE
         else:
             laps = session.laps
             fastest_laps = laps.pick_quicklaps().reset_index()
@@ -113,7 +114,6 @@ def get_session_results(year: int, round_number: int, session_type: str):
                 lap_time_val = row['LapTime']
                 time_str = str(lap_time_val).split('days ')[-1][:-3] if pd.notna(lap_time_val) else "No Time"
                 
-                # Get the manual lap count
                 driver_lap_count = int(total_laps_per_driver.get(row['Driver'], 0))
 
                 results.append({
@@ -138,15 +138,14 @@ def get_driver_telemetry(year: int, round_number: int, session_type: str, driver
         session = fastf1.get_session(year, round_number, session_type)
         session.load(telemetry=True, weather=False)
         
-        # 1. Get the fastest lap for this driver
         try:
             lap = session.laps.pick_driver(driver).pick_fastest()
         except:
             return {"error": f"Driver {driver} has no valid lap data."}
 
-        # 2. Get Telemetry (Speed, Throttle, Brake)
         tel = lap.get_telemetry()
         
+        # Downsample for performance
         tel_reduced = tel.iloc[::4]
 
         telemetry_data = []
@@ -176,13 +175,8 @@ def get_track_map(year: int, round_number: int, session_type: str, driver: str):
         session = fastf1.get_session(year, round_number, session_type)
         session.load(telemetry=True, weather=False)
         
-        # 1. Get the fastest lap
         lap = session.laps.pick_driver(driver).pick_fastest()
-        
-        # 2. Get Telemetry (includes X, Y, Z coordinates)
-        # We also want 'Speed' so we can color-code the map later if we want
         pos_data = lap.get_telemetry()
-        
         pos_reduced = pos_data.iloc[::2]
 
         track_data = []
@@ -190,7 +184,7 @@ def get_track_map(year: int, round_number: int, session_type: str, driver: str):
             track_data.append({
                 "x": row['X'],
                 "y": row['Y'],
-                "speed": row['Speed'] # Useful for coloring later
+                "speed": row['Speed']
             })
             
         return {
@@ -211,8 +205,6 @@ def get_tyre_strategy(year: int, round_number: int, session_type: str, driver: s
         laps = session.laps.pick_driver(driver)
         stints = []
         
-        # Group laps by 'Stint' to find start/end of each tyre set
-        # We look at "Compound" (SOFT, MEDIUM, HARD)
         for stint_id, stint_laps in laps.groupby("Stint"):
             compound = stint_laps["Compound"].iloc[0]
             start_lap = int(stint_laps["LapNumber"].min())
@@ -238,32 +230,24 @@ def get_time_delta(year: int, round_number: int, session_type: str, driver1: str
         session = fastf1.get_session(year, round_number, session_type)
         session.load(telemetry=True, weather=False)
         
-        # 1. Get Fastest Laps
         lap1 = session.laps.pick_driver(driver1).pick_fastest()
         lap2 = session.laps.pick_driver(driver2).pick_fastest()
         
-        # 2. Calculate Gap using FastF1
-        # We calculate the delta of Lap 1 (Target) relative to Lap 2 (Reference)
         delta_series = fastf1.utils.delta_time(lap2, lap1)
         
-        # FIX 1: Handle if FastF1 returns a Tuple instead of a Series
         if isinstance(delta_series, tuple):
             delta_series = delta_series[0]
             
-        # FIX 2: Use Lap 2's distance because the delta is calculated relative to IT
         dist_series = lap2.get_telemetry()['Distance']
         
-        # FIX 3: Convert to simple lists to avoid "iloc" errors entirely
         delta_list = delta_series.to_list()
         dist_list = dist_series.to_list()
         
-        # 3. Format for Frontend
         delta_data = []
-        # Safety: Ensure we don't go out of bounds if lengths differ slightly
         limit = min(len(delta_list), len(dist_list))
         
         for i in range(limit):
-             if i % 4 == 0: # Downsample for speed
+             if i % 4 == 0: 
                  delta_data.append({
                      "Distance": dist_list[i],
                      "Delta": delta_list[i] 
@@ -273,4 +257,55 @@ def get_time_delta(year: int, round_number: int, session_type: str, driver1: str
 
     except Exception as e:
         print(f"Error in delta calculation: {e}")
+        return {"error": str(e)}
+
+# === NEW: CORNER ANALYSIS ENDPOINT ===
+@app.get("/api/corners/{year}/{round_number}/{session_type}/{driver}")
+def get_corner_analysis(year: int, round_number: int, session_type: str, driver: str):
+    try:
+        session = fastf1.get_session(year, round_number, session_type)
+        session.load(telemetry=True, weather=False)
+        
+        lap = session.laps.pick_driver(driver).pick_fastest()
+        tel = lap.get_telemetry()
+        
+        # 1. Identify "Local Minima" in Speed (The slowest point of a corner)
+        # We use a rolling window to filter out noise
+        tel['Speed_Smooth'] = tel['Speed'].rolling(window=5, center=True).mean()
+        
+        # Calculate peaks (minima)
+        # This logic finds points where speed is lower than the neighbors
+        tel['is_min'] = (tel['Speed_Smooth'] < tel['Speed_Smooth'].shift(1)) & \
+                        (tel['Speed_Smooth'] < tel['Speed_Smooth'].shift(-1))
+        
+        # Filter: Only consider "real" corners, not just tiny lifts on straights
+        # Rule: Speed must be < 280km/h (rough heuristic) AND Brake must be applied near it
+        minima = tel[tel['is_min'] & (tel['Speed'] < 280)].copy()
+
+        corners = []
+        corner_counter = 1
+        
+        for _, row in minima.iterrows():
+            corners.append({
+                "CornerID": f"T{corner_counter}", # Temporary ID, usually based on distance
+                "Distance": round(row['Distance'], 2),
+                "Speed": int(row['Speed']),
+                "Gear": int(row['nGear'])
+            })
+            corner_counter += 1
+            
+        # Deduplicate corners that are too close (within 50m)
+        # This prevents one corner showing up as two distinct minima
+        final_corners = []
+        if corners:
+            last_dist = -1000
+            for c in corners:
+                if c['Distance'] - last_dist > 50: # Only add if > 50m away from last one
+                    final_corners.append(c)
+                    last_dist = c['Distance']
+
+        return {"driver": driver, "corners": final_corners}
+
+    except Exception as e:
+        print(f"Error in corner analysis: {e}")
         return {"error": str(e)}

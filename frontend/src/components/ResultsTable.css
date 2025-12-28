@@ -1,0 +1,64 @@
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  font-family: "Segoe UI", Roboto, sans-serif;
+  background: white;
+  border-radius: 12px;
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+.results-table thead {
+  background-color: #1a1a1a; /* Dark Header */
+  color: white;
+}
+
+.results-table th {
+  padding: 12px 15px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.results-table td {
+  padding: 12px 15px;
+  font-size: 13px;
+  color: #333;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* Zebra Striping */
+.results-table tbody tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+.results-table tbody tr:hover {
+  background-color: #f0f2f5;
+  cursor: pointer;
+}
+
+/* Driver Name Styling */
+.driver-cell {
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+/* Team Color Dot */
+.team-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.active-row {
+    background-color: #fff0f0 !important; /* Light red highlight */
+    border-left: 3px solid #e10600;
+}

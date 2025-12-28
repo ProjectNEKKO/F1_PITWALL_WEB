@@ -1,0 +1,61 @@
+.strategy-container {
+  width: 100%;
+  margin-bottom: 30px;
+  font-family: "Segoe UI", Roboto, sans-serif;
+}
+
+.strategy-title {
+  margin: 0 0 10px 0;
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.timeline-bar {
+  display: flex;
+  width: 100%;
+  height: 40px;
+  background: #fafafa;
+  /* overflow: hidden is REMOVED intentionally */
+}
+
+.stint-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative; /* Anchor for the label */
+  font-size: 12px;
+  font-weight: 700;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.stint-block:hover {
+  filter: brightness(1.1); /* Nice hover effect */
+}
+
+.pit-label {
+  position: absolute;
+  bottom: -28px;
+  right: -12px;
+  z-index: 10;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-size: 10px;
+  color: #666;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  white-space: nowrap;
+  font-weight: normal;
+}
+
+/* Modifier Classes for specific tyre types */
+.tyre-soft { background-color: #ff3b30; color: white; }
+.tyre-medium { background-color: #ffcc00; color: white; }
+.tyre-hard { background-color: #f0f0f0; color: #333; }
+.tyre-inter { background-color: #34c759; color: white; }
+.tyre-wet { background-color: #007aff; color: white; }
+.tyre-unknown { background-color: #8e8e93; color: white; }
