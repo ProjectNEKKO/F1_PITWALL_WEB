@@ -37,7 +37,6 @@ def read_root():
 # 5. Schedule Endpoint (UPDATED with EventFormat)
 @app.get("/api/schedule/{year}")
 def get_schedule(year: int):
-    print("✅ RELOADING SCHEDULE... IF YOU SEE THIS, THE NEW CODE IS WORKING!")
     try:
         schedule = fastf1.get_event_schedule(year)
         # FIX: Added 'EventFormat' so frontend knows if it's a Sprint weekend

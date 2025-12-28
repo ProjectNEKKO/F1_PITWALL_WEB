@@ -6,17 +6,18 @@ import {
 import { getTeamColor } from '../utils/f1Teams'; 
 import './Telemetry.css'; 
 
-// --- 1. MAIN WRAPPER ---
+// --- 1. MAIN WRAPPER (Calculates Colors) ---
 function Telemetry({ data, deltaData, driver1, driver2, driversList }) {
   
   const resolveColor = (driverCode) => {
-    if (!driversList || !driverCode) return '#e10600'; // Default Red
+    if (!driversList || !driverCode) return null;
     const driverInfo = driversList.find(d => d.Driver === driverCode);
-    return getTeamColor(driverInfo?.Team);
+    return driverInfo ? getTeamColor(driverInfo.Team) : null;
   };
 
-  const color1 = resolveColor(driver1);
-  const color2 = resolveColor(driver2);
+  // Fallbacks: If resolveColor returns null, use Red/Blue
+  const color1 = resolveColor(driver1) || '#e10600';
+  const color2 = resolveColor(driver2) || '#2b6ef9';
 
   return (
     <div className="telemetry-container">
@@ -32,14 +33,11 @@ function Telemetry({ data, deltaData, driver1, driver2, driversList }) {
   );
 }
 
-// --- 2. CHART LOGIC ---
+// --- 2. CHART LOGIC (Renders Graphs) ---
 function TelemetryChart({ data, deltaData, driver1, driver2, color1, color2 }) {
   if (!data) return null;
 
-  const c1 = color1 || "#e10600"; 
-  const c2 = color2 || "#2b6ef9"; 
-
-  // --- Gradient Logic for Delta ---
+  // Gradient Logic for Delta Chart
   const getGradientOffset = () => {
     if (!deltaData || deltaData.length === 0) return 0;
     const dataMax = Math.max(...deltaData.map((i) => i.Delta));
@@ -50,7 +48,7 @@ function TelemetryChart({ data, deltaData, driver1, driver2, color1, color2 }) {
   };
   const off = getGradientOffset();
 
-  // --- Shared Props ---
+  // Shared Props
   const commonGrid = <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e5e5" />;
   const commonXAxis = (hideLabel = true) => (
     <XAxis 
@@ -67,7 +65,6 @@ function TelemetryChart({ data, deltaData, driver1, driver2, color1, color2 }) {
     />
   );
 
-  // --- Custom Dark Tooltip ---
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
@@ -94,125 +91,128 @@ function TelemetryChart({ data, deltaData, driver1, driver2, color1, color2 }) {
 
   return (
     <>
-      {/* 0. DEFINE GRADIENTS */}
       <svg style={{ height: 0, width: 0, position: 'absolute' }}>
         <defs>
-          {/* Driver 1 Gradient */}
           <linearGradient id="colorDriver1" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor={c1} stopOpacity={0.3}/>
-            <stop offset="95%" stopColor={c1} stopOpacity={0}/>
+            <stop offset="5%" stopColor={color1} stopOpacity={0.3}/>
+            <stop offset="95%" stopColor={color1} stopOpacity={0}/>
           </linearGradient>
-          {/* Driver 2 Gradient */}
           <linearGradient id="colorDriver2" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor={c2} stopOpacity={0.3}/>
-            <stop offset="95%" stopColor={c2} stopOpacity={0}/>
+            <stop offset="5%" stopColor={color2} stopOpacity={0.3}/>
+            <stop offset="95%" stopColor={color2} stopOpacity={0}/>
           </linearGradient>
-          {/* Delta Gradient */}
           <linearGradient id="splitColor" x1="0" y1="0" x2="0" y2="1">
-            <stop offset={off} stopColor={c2} stopOpacity={1} />
-            <stop offset={off} stopColor={c1} stopOpacity={1} />
+            <stop offset={off} stopColor={color2} stopOpacity={1} />
+            <stop offset={off} stopColor={color1} stopOpacity={1} />
           </linearGradient>
         </defs>
       </svg>
 
-      {/* 1. TIME DELTA CHART */}
+      {/* 1. TIME DELTA */}
       {deltaData && driver2 && (
         <div className="chart-section delta">
             <div className="chart-header">
                <h4 className="chart-title">Time Delta (s)</h4>
                <div className="delta-legend">
-                  <span style={{color: c2}}>▲ {driver2} Faster</span> 
+                  <span style={{color: color2}}>▲ {driver2} Faster</span> 
                   <span style={{color: '#ddd'}}>|</span>
-                  <span style={{color: c1}}>▼ {driver1} Faster</span>
+                  <span style={{color: color1}}>▼ {driver1} Faster</span>
                </div>
             </div>
-            <ResponsiveContainer>
-            <LineChart data={deltaData} syncId="f1Telemetry" margin={{ top: 5, right: 20, left: 0, bottom: 0 }}>
-                {commonGrid}
-                {commonXAxis(true)}
-                <ReferenceLine y={0} stroke="#444" strokeDasharray="3 3" />
-                <YAxis domain={['auto', 'auto']} width={40} tick={{fontSize: 10}} tickLine={false} axisLine={false} />
-                <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#666', strokeWidth: 1 }} />
-                <Line type="monotone" dataKey="Delta" name="Delta" stroke="url(#splitColor)" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
-            </LineChart>
-            </ResponsiveContainer>
+            {/* WRAPPER DIV TO FIX SQUISHING */}
+            <div style={{ width: '100%', height: '100%' }}> 
+                <ResponsiveContainer>
+                    <LineChart data={deltaData} syncId="f1Telemetry" margin={{ top: 5, right: 20, left: 0, bottom: 0 }}>
+                        {commonGrid}
+                        {commonXAxis(true)}
+                        <ReferenceLine y={0} stroke="#444" strokeDasharray="3 3" />
+                        <YAxis domain={['auto', 'auto']} width={40} tick={{fontSize: 10}} tickLine={false} axisLine={false} />
+                        <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#666', strokeWidth: 1 }} />
+                        <Line type="monotone" dataKey="Delta" name="Delta" stroke="url(#splitColor)" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
+                    </LineChart>
+                </ResponsiveContainer>
+            </div>
         </div>
       )}
 
-      {/* 2. SPEED CHART (Now using AreaChart for "Weight") */}
+      {/* 2. SPEED */}
       <div className="chart-section speed">
         <div className="chart-header">
            <h4 className="chart-title">Speed (km/h)</h4>
         </div>
-        <ResponsiveContainer>
-          <AreaChart data={data} syncId="f1Telemetry" margin={{ top: 5, right: 20, left: 0, bottom: 0 }}>
-            {commonGrid}
-            {commonXAxis(true)}
-            <YAxis domain={[0, 360]} hide />
-            <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#666', strokeWidth: 1 }} />
-            <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{fontSize: '12px', fontWeight: '700', textTransform:'uppercase'}}/>
-            
-            {/* Driver 1 (Filled) */}
-            <Area type="monotone" dataKey="Speed" name={driver1} stroke={c1} strokeWidth={2.5} fillOpacity={1} fill="url(#colorDriver1)" activeDot={{ r: 5, strokeWidth: 0 }} />
-            
-            {/* Driver 2 (Dashed Line, No Fill to avoid clutter) */}
-            {driver2 && <Line type="monotone" dataKey="Speed2" name={driver2} stroke={c2} strokeWidth={2.5} dot={false} strokeDasharray="4 4" />}
-          </AreaChart>
-        </ResponsiveContainer>
+        <div style={{ width: '100%', height: '100%' }}>
+            <ResponsiveContainer>
+            <AreaChart data={data} syncId="f1Telemetry" margin={{ top: 5, right: 20, left: 0, bottom: 0 }}>
+                {commonGrid}
+                {commonXAxis(true)}
+                <YAxis domain={[0, 360]} hide />
+                <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#666', strokeWidth: 1 }} />
+                <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{fontSize: '12px', fontWeight: '700', textTransform:'uppercase'}}/>
+                <Area type="monotone" dataKey="Speed" name={driver1} stroke={color1} strokeWidth={2.5} fillOpacity={1} fill="url(#colorDriver1)" activeDot={{ r: 5, strokeWidth: 0 }} />
+                {driver2 && <Line type="monotone" dataKey="Speed2" name={driver2} stroke={color2} strokeWidth={2.5} dot={false} strokeDasharray="4 4" />}
+            </AreaChart>
+            </ResponsiveContainer>
+        </div>
       </div>
 
-      {/* 3. THROTTLE CHART */}
+      {/* 3. THROTTLE */}
       <div className="chart-section throttle">
         <div className="chart-header">
            <h4 className="chart-title">Throttle (%)</h4>
         </div>
-        <ResponsiveContainer>
-          <AreaChart data={data} syncId="f1Telemetry" margin={{ top: 5, right: 20, left: 0, bottom: 0 }}>
-            {commonGrid}
-            {commonXAxis(true)}
-            <YAxis domain={[0, 105]} hide />
-            <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#666', strokeWidth: 1 }} />
-            <Area type="step" dataKey="Throttle" name="Throttle" stroke={c1} strokeWidth={2} fillOpacity={1} fill="url(#colorDriver1)" />
-            {driver2 && <Line type="step" dataKey="Throttle2" name="Throttle" stroke={c2} strokeWidth={2} dot={false} strokeDasharray="4 4" />}
-          </AreaChart>
-        </ResponsiveContainer>
+        <div style={{ width: '100%', height: '100%' }}>
+            <ResponsiveContainer>
+            <AreaChart data={data} syncId="f1Telemetry" margin={{ top: 5, right: 20, left: 0, bottom: 0 }}>
+                {commonGrid}
+                {commonXAxis(true)}
+                <YAxis domain={[0, 105]} hide />
+                <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#666', strokeWidth: 1 }} />
+                <Area type="step" dataKey="Throttle" name="Throttle" stroke={color1} strokeWidth={2} fillOpacity={1} fill="url(#colorDriver1)" />
+                {driver2 && <Line type="step" dataKey="Throttle2" name="Throttle" stroke={color2} strokeWidth={2} dot={false} strokeDasharray="4 4" />}
+            </AreaChart>
+            </ResponsiveContainer>
+        </div>
       </div>
 
-      {/* 4. BRAKE CHART */}
+      {/* 4. BRAKE */}
       <div className="chart-section brake">
         <div className="chart-header">
            <h4 className="chart-title">Brake</h4>
         </div>
-        <ResponsiveContainer>
-          <LineChart data={data} syncId="f1Telemetry" margin={{ top: 5, right: 20, left: 0, bottom: 0 }}>
-            {commonGrid}
-            {commonXAxis(true)}
-            <YAxis domain={[0, 1.2]} hide />
-            <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#666', strokeWidth: 1 }} />
-            <Line type="step" dataKey="Brake" name="Brake" stroke={c1} strokeWidth={2} dot={false} />
-            {driver2 && <Line type="step" dataKey="Brake2" name="Brake" stroke={c2} strokeWidth={2} dot={false} strokeDasharray="4 4" />}
-          </LineChart>
-        </ResponsiveContainer>
+        <div style={{ width: '100%', height: '100%' }}>
+            <ResponsiveContainer>
+            <LineChart data={data} syncId="f1Telemetry" margin={{ top: 5, right: 20, left: 0, bottom: 0 }}>
+                {commonGrid}
+                {commonXAxis(true)}
+                <YAxis domain={[0, 1.2]} hide />
+                <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#666', strokeWidth: 1 }} />
+                <Line type="step" dataKey="Brake" name="Brake" stroke={color1} strokeWidth={2} dot={false} />
+                {driver2 && <Line type="step" dataKey="Brake2" name="Brake" stroke={color2} strokeWidth={2} dot={false} strokeDasharray="4 4" />}
+            </LineChart>
+            </ResponsiveContainer>
+        </div>
       </div>
 
-      {/* 5. GEAR CHART */}
+      {/* 5. GEAR */}
       <div className="chart-section gear">
         <div className="chart-header">
            <h4 className="chart-title">Gear</h4>
         </div>
-        <ResponsiveContainer>
-          <LineChart data={data} syncId="f1Telemetry" margin={{ top: 5, right: 20, left: 0, bottom: 0 }}>
-            {commonGrid}
-            {commonXAxis(false)}
-            <YAxis domain={[0, 9]} hide />
-            <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#666', strokeWidth: 1 }} />
-            <Line type="stepAfter" dataKey="Gear" name="Gear" stroke={c1} strokeWidth={2} dot={false} />
-            {driver2 && <Line type="stepAfter" dataKey="Gear2" name="Gear" stroke={c2} strokeWidth={2} dot={false} strokeDasharray="4 4" />}
-          </LineChart>
-        </ResponsiveContainer>
+        <div style={{ width: '100%', height: '100%' }}>
+            <ResponsiveContainer>
+            <LineChart data={data} syncId="f1Telemetry" margin={{ top: 5, right: 20, left: 0, bottom: 0 }}>
+                {commonGrid}
+                {commonXAxis(false)}
+                <YAxis domain={[0, 9]} hide />
+                <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#666', strokeWidth: 1 }} />
+                <Line type="stepAfter" dataKey="Gear" name="Gear" stroke={color1} strokeWidth={2} dot={false} />
+                {driver2 && <Line type="stepAfter" dataKey="Gear2" name="Gear" stroke={color2} strokeWidth={2} dot={false} strokeDasharray="4 4" />}
+            </LineChart>
+            </ResponsiveContainer>
+        </div>
       </div>
     </>
   );
 }
 
-export default TelemetryChart;
+export default Telemetry;

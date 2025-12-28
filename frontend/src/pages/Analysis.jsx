@@ -6,7 +6,7 @@ import SessionControls from '../components/SessionControls';
 import Telemetry from '../components/Telemetry';
 import TrackMap from '../components/TrackMap';
 import TyreStrategy from '../components/TyreStrategy';
-import { BarChart2, List, ChevronLeft, ChevronRight } from 'lucide-react'; 
+import { BarChart2, List, ChevronLeft, ChevronRight, Gauge, Activity, GitCommit } from 'lucide-react';
 import './Analysis.css'; // <--- IMPORT THE CSS
 
 function Analysis() {
@@ -214,33 +214,60 @@ function Analysis() {
                 <div className="bento-row-split">
                     
                     {/* MAP CARD */}
-                    <div className="card" style={{height: '320px'}}>
-                      <h4 className="card-title">TRACK LAYOUT</h4>
-                      {trackData ? <TrackMap data={trackData} driver={selectedDriver} /> : <div style={{height: '100%', background: '#f5f5f5', borderRadius: '8px'}}/>}
+                    <div className="card map-card">
+                      <div className="map-header">
+                        <h4 className="card-title" style={{marginBottom: 0}}>TRACK LAYOUT</h4>
+                      </div>
+                      {/* Passed 'height' prop so the map knows to fill the space */}
+                      {trackData ? (
+                        <TrackMap 
+                          data={trackData} 
+                          driver={selectedDriver} 
+                          driversList={selectedRaceResults}
+                          height={350} 
+                        /> 
+                      ) : (
+                        <div style={{height: '100%', background: '#f9f9f9'}}/>
+                      )}
                     </div>
 
                     {/* STATS CARD */}
-                    <div className="card center-content">
-                       <div className="stats-grid">
-                          <div className="stat-box">
-                             <div className="stat-label">TOP SPEED</div>
-                             <div className="stat-value">
-                               {Math.max(...(telemetryData?.map(d => d.Speed) || [0]))} km/h
-                             </div>
+                    <div className="card stats-container">
+                      <div className="stats-grid">
+                          
+                          {/* 1. TOP SPEED */}
+                          <div className="stat-box red">
+                            <div className="stat-label">
+                                <Gauge size={14} /> TOP SPEED
+                            </div>
+                            <div className="stat-value">
+                              {Math.max(...(telemetryData?.map(d => d.Speed) || [0]))}
+                              <span className="stat-unit">KM/H</span>
+                            </div>
                           </div>
-                          <div className="stat-box">
-                             <div className="stat-label">AVG SPEED</div>
-                             <div className="stat-value">
-                               {Math.round(telemetryData?.reduce((a, b) => a + b.Speed, 0) / (telemetryData?.length || 1))} km/h
-                             </div>
+
+                          {/* 2. AVG SPEED */}
+                          <div className="stat-box blue">
+                            <div className="stat-label">
+                                <Activity size={14} /> AVG SPEED
+                            </div>
+                            <div className="stat-value">
+                              {Math.round(telemetryData?.reduce((a, b) => a + b.Speed, 0) / (telemetryData?.length || 1))}
+                              <span className="stat-unit">KM/H</span>
+                            </div>
                           </div>
-                          <div className="stat-box">
-                             <div className="stat-label">GEAR SHIFTS</div>
-                             <div className="stat-value">
-                               {telemetryData?.filter((d, i, arr) => i > 0 && d.Gear !== arr[i-1].Gear).length || 0}
-                             </div>
+
+                          {/* 3. GEAR SHIFTS */}
+                          <div className="stat-box orange">
+                            <div className="stat-label">
+                                <GitCommit size={14} /> GEAR SHIFTS
+                            </div>
+                            <div className="stat-value">
+                              {telemetryData?.filter((d, i, arr) => i > 0 && d.Gear !== arr[i-1].Gear).length || 0}
+                            </div>
                           </div>
-                       </div>
+
+                      </div>
                     </div>
                 </div>
 

@@ -100,56 +100,107 @@
 
 .bento-row-split {
   display: grid;
-  grid-template-columns: minmax(300px, 1fr) 2fr; /* 1/3 Map, 2/3 Stats */
+  grid-template-columns: 1fr 2fr; /* Map takes 1/3, Stats take 2/3 */
   gap: 20px;
+  /* Ensure equal height for both cards */
+  align-items: stretch; 
 }
 
-.card {
-  background: white;
-  padding: 20px;
-  border-radius: 16px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+/* --- MAP CARD --- */
+.map-card {
+  height: 350px;
+  padding: 0 !important; /* Remove padding so map fills edge-to-edge */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
 }
 
-.card-title {
-  margin: 0 0 15px 0;
-  font-size: 14px;
-  color: #666;
-  font-weight: 700;
-  text-transform: uppercase;
+.map-header {
+  position: absolute;
+  top: 15px;
+  left: 20px;
+  z-index: 10;
+  background: rgba(255,255,255,0.9);
+  padding: 5px 10px;
+  border-radius: 6px;
+  backdrop-filter: blur(2px);
 }
 
-/* --- STATS CARD --- */
-.center-content {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+/* --- STATS GRID --- */
+.stats-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
 }
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, 1fr); /* 3 Equal Columns */
   gap: 20px;
-  text-align: center;
+  width: 100%;
 }
 
 .stat-box {
-  padding: 20px;
-  background: #f8f9fa;
+  background: white;
+  border: 1px solid #eee;
   border-radius: 12px;
+  padding: 25px 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
 }
 
+.stat-box:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+}
+
+/* Colored Top Borders */
+.stat-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+}
+
+.stat-box.red::before { background: #e10600; }
+.stat-box.blue::before { background: #2b6ef9; }
+.stat-box.orange::before { background: #f39c12; }
+
+/* Typography */
 .stat-label {
-  font-size: 12px;
-  color: #888;
-  margin-bottom: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #999;
   text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .stat-value {
-  font-size: 24px;
-  font-weight: bold;
-  color: #1a1a1a;
+  font-family: 'Consolas', 'Monaco', monospace; /* Digital look */
+  font-size: 28px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.stat-unit {
+  font-size: 14px;
+  color: #999;
+  font-weight: 500;
+  margin-left: 4px;
 }
 
 /* --- TELEMETRY DROPDOWN --- */
