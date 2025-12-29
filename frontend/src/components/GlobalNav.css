@@ -1,0 +1,180 @@
+/* frontend/src/components/GlobalNav.css */
+
+/* 1. RESET & MAIN CONTAINER */
+.global-nav {
+  height: 100vh;
+  background: #0f0f10;
+  border-right: 1px solid #2a2a2a;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 20px 0; /* Remove side padding, handle it in rows */
+  box-sizing: border-box;
+}
+
+/* WIDTHS */
+.global-nav.collapsed { width: 80px; }
+.global-nav.expanded { width: 260px; }
+
+/* 2. HEADER (Logo + Toggle) */
+.nav-header {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  padding: 0 15px; /* Inner padding */
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden; /* Hide text if it overflows during anim */
+}
+
+/* LOGO BOX - Fixed size to prevent jumping */
+.nav-logo-container {
+  min-width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.nav-logo {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #e10600, #b30500);
+  color: white;
+  font-family: sans-serif;
+  font-weight: 900;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(225, 6, 0, 0.3);
+}
+
+.logo-text {
+  margin-left: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.global-nav.expanded .logo-text { opacity: 1; }
+
+/* TOGGLE BUTTON - Floating on the right edge */
+.toggle-btn {
+  position: absolute;
+  right: 15px;
+  width: 24px;
+  height: 24px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: #888;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0; /* Hidden when collapsed */
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+
+.global-nav.expanded .toggle-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 3. LINKS ROWS */
+.nav-section {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  height: 50px;
+  color: #777;
+  text-decoration: none;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.nav-link.active {
+  background: rgba(225, 6, 0, 0.1);
+  color: #ff4d4d;
+}
+
+/* Left Border for Active */
+.nav-link.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 24px;
+  background: #e10600;
+  border-radius: 0 4px 4px 0;
+}
+
+/* 4. THE RIGID ICON BOX (Crucial Fix) */
+/* This ensures the icon is ALWAYS perfectly centered in the 80px column */
+.nav-icon {
+  min-width: 80px; /* Matches collapsed width */
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-text {
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.global-nav.expanded .nav-text { opacity: 1; }
+
+/* SECTION LABELS */
+.section-label {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  padding-left: 20px; /* Align with text */
+  font-size: 11px;
+  font-weight: 700;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.global-nav.expanded .section-label { opacity: 1; }
+
+/* FOOTER */
+.nav-footer {
+  margin-top: auto;
+  border-top: 1px solid #222;
+  padding-top: 10px;
+}

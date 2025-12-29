@@ -1,27 +1,29 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import GlobalNav from './components/GlobalNav';
 import Analysis from './pages/Analysis';
+// remove "import Dashboard" if you don't have the file yet
 
-// Placeholder pages for now
-const Dashboard = () => <h1 style={{padding: 50}}>Dashboard Coming Soon</h1>;
-const Standings = () => <h1 style={{padding: 50}}>Standings Coming Soon</h1>;
+// 1. Define Placeholders directly here (Rename them if needed, but this is fine)
+const Dashboard = () => <div style={{padding: 50}}><h1>Dashboard</h1><p>Coming Soon</p></div>;
+const Standings = () => <div style={{padding: 50}}><h1>Standings</h1><p>Coming Soon</p></div>;
+const Settings = () => <div style={{padding: 50}}><h1>Settings</h1><p>Coming Soon</p></div>;
 
 function App() {
   return (
     <Router>
-      <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', fontFamily: 'Arial, sans-serif' }}>
+      <div style={{ display: 'flex', width: '100vw', height: '100vh', overflow: 'hidden' }}>
         
-        {/* 1. Permanent Global Nav (Far Left) */}
+        {/* Sidebar */}
         <GlobalNav />
-
-        {/* 2. Dynamic Content Area */}
-        <div style={{ flex: 1, height: '100vh', overflow: 'hidden', background: '#f5f7fa' }}>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/analysis" element={<Analysis />} />
-            <Route path="/standings" element={<Standings />} />
-          </Routes>
+        
+        {/* Content Area */}
+        <div style={{ flex: 1, overflow: 'auto', position: 'relative', background: '#f8f9fa' }}>
+           <Routes>
+             <Route path="/" element={<Dashboard />} />
+             <Route path="/analysis" element={<Analysis />} />
+             <Route path="/standings" element={<Standings />} />
+             <Route path="/settings" element={<Settings />} />
+           </Routes>
         </div>
 
       </div>
