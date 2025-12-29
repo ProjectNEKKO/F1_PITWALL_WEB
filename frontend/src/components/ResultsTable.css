@@ -1,64 +1,78 @@
+/* frontend/src/components/ResultsTable.css */
+
 .table-container {
   width: 100%;
   overflow-x: auto;
-  font-family: "Segoe UI", Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: white;
   border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* Subtle depth */
 }
 
 .results-table {
   width: 100%;
-  border-collapse: collapse;
-  min-width: 600px;
+  border-collapse: collapse; /* Essential for clean borders */
+  min-width: 700px; /* Prevent crushing on small screens */
 }
 
+/* --- HEADER --- */
 .results-table thead {
-  background-color: #1a1a1a; /* Dark Header */
+  background-color: #1a1a1a;
   color: white;
 }
 
 .results-table th {
-  padding: 12px 15px;
-  text-align: left;
+  padding: 14px 15px;
+  text-align: left; /* Default alignment */
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
+  border-bottom: 2px solid #e10600; /* F1 Red underline for header */
 }
 
+/* --- ROWS --- */
 .results-table td {
   padding: 12px 15px;
   font-size: 13px;
   color: #333;
   border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle; /* Keeps Team Dot centered with text */
 }
 
-/* Zebra Striping */
+/* Zebra Striping (Subtle) */
 .results-table tbody tr:nth-child(even) {
   background-color: #fafafa;
 }
 
+/* Hover Effect */
 .results-table tbody tr:hover {
-  background-color: #f0f2f5;
+  background-color: #f4f4f5;
   cursor: pointer;
+  transform: translateY(-1px); /* Micro-interaction */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
-/* Driver Name Styling */
+/* --- ACTIVE ROW (Selected Driver) --- */
+.active-row {
+  background-color: #fff0f0 !important; /* Light Red Highlight */
+  /* PRO TIP: Use box-shadow for borders on TR elements (renders better than border-left) */
+  box-shadow: inset 4px 0 0 #e10600 !important; 
+  font-weight: 500;
+}
+
+/* --- CELL STYLES --- */
 .driver-cell {
   font-weight: 700;
-  color: #1a1a1a;
+  color: #111;
 }
 
 /* Team Color Dot */
 .team-dot {
   display: inline-block;
-  width: 8px;
-  height: 8px;
+  width: 10px; /* Slightly larger */
+  height: 10px;
   border-radius: 50%;
-  margin-right: 8px;
-}
-
-.active-row {
-    background-color: #fff0f0 !important; /* Light red highlight */
-    border-left: 3px solid #e10600;
+  margin-right: 10px;
+  vertical-align: -1px; /* Optical adjustment */
 }

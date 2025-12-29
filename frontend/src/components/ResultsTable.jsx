@@ -19,23 +19,26 @@ function ResultsTable({ results, sessionType, selectedDriver, onDriverClick }) {
       <table className="results-table">
         <thead>
           <tr>
-            <th style={{width: '50px'}}>Pos</th>
-            <th style={{width: '50px'}}>No</th>
+            <th style={{width: '50px', textAlign: 'center'}}>Pos</th>
+            <th style={{width: '50px', textAlign: 'center'}}>No</th>
             <th>Driver</th>
             <th>Team</th>
             
-            {/* CONDITIONAL HEADERS: Show 3 columns for Q or SQ */}
+            {/* CONDITIONAL HEADERS: Show 3 columns for Q, else split Time/Laps/Pts for Race */}
             {isQualifying ? (
                 <>
                     <th>Q1</th>
                     <th>Q2</th>
                     <th>Q3</th>
+                    <th style={{textAlign: 'right'}}>Laps</th>
                 </>
             ) : (
-                <th>Time/Status</th>
+                <>
+                    <th>Time/Status</th>
+                    <th style={{width: '60px', textAlign: 'center'}}>Laps</th>
+                    <th style={{width: '60px', textAlign: 'center'}}>Pts</th>
+                </>
             )}
-            
-            <th style={{textAlign: 'right'}}>Pts/Laps</th>
           </tr>
         </thead>
         <tbody>
@@ -44,9 +47,8 @@ function ResultsTable({ results, sessionType, selectedDriver, onDriverClick }) {
             const num = item.DriverNumber || item.driver_number || "";
             const name = item.FullName || item.full_name || item.BroadcastName || item.Driver || item.Abbreviation || "Unknown"; 
             const team = item.TeamName || item.team_name || item.Team || "Unknown Team";
-            const pointsOrLaps = (sessionType === 'R' || sessionType === 'S')
-                ? (item.Points || item.points || 0) 
-                : (item.Laps || item.laps || 0);
+            const points = item.Points || item.points || 0;
+            const laps = item.Laps || item.laps || 0;
             
             const driverId = item.Driver || item.Abbreviation || item.code || "UNK";
 
@@ -56,8 +58,8 @@ function ResultsTable({ results, sessionType, selectedDriver, onDriverClick }) {
                     onClick={() => onDriverClick && onDriverClick(driverId)}
                     className={selectedDriver === driverId ? 'active-row' : ''}
                 >
-                <td>{pos}</td>
-                <td style={{color: getTeamColor(team), fontWeight: 'bold'}}>{num}</td>
+                <td style={{textAlign: 'center'}}>{pos}</td>
+                <td style={{textAlign: 'center', color: getTeamColor(team), fontWeight: 'bold'}}>{num}</td>
                 
                 <td className="driver-cell">{String(name).toUpperCase()}</td>
                 
@@ -78,16 +80,24 @@ function ResultsTable({ results, sessionType, selectedDriver, onDriverClick }) {
                         <td style={{fontFamily: 'monospace', fontSize: '12px', fontWeight: 'bold', color: '#333'}}>
                             {item.Q3 || item.q3 || "--"}
                         </td>
+                        <td style={{textAlign: 'right', fontWeight: 'bold'}}>
+                            {laps}
+                        </td>
                     </>
                 ) : (
-                    <td style={{fontFamily: 'monospace', fontSize: '12px'}}>
-                        {getRaceTime(item)}
-                    </td>
+                    <>
+                        {/* RACE COLUMNS: Time | Laps | Points */}
+                        <td style={{fontFamily: 'monospace', fontSize: '12px'}}>
+                            {getRaceTime(item)}
+                        </td>
+                        <td style={{textAlign: 'center', color: '#666'}}>
+                            {laps}
+                        </td>
+                        <td style={{textAlign: 'center', fontWeight: 'bold'}}>
+                            {points}
+                        </td>
+                    </>
                 )}
-
-                <td style={{textAlign: 'right', fontWeight: 'bold'}}>
-                    {pointsOrLaps}
-                </td>
                 </tr>
             );
           })}
