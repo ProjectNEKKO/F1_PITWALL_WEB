@@ -30,3 +30,31 @@ export const getTimeDelta = async (year, round, sessionType, driver1, driver2) =
     const res = await fetch(`${BASE_URL}/delta/${year}/${round}/${sessionType}/${driver1}/${driver2}`);
     return res.json();
 };
+
+export const getDriverStandings = async (year = 'current') => {
+    try {
+        // 👇 UPDATE THIS URL
+        const response = await fetch(`https://api.jolpi.ca/ergast/f1/${year}/driverStandings.json`);
+        
+        const data = await response.json();
+        if (!data.MRData || !data.MRData.StandingsTable.StandingsLists.length) return [];
+        return data.MRData.StandingsTable.StandingsLists[0].DriverStandings;
+    } catch (error) {
+        console.error("Error fetching driver standings:", error);
+        return [];
+    }
+};
+
+export const getConstructorStandings = async (year = 'current') => {
+    try {
+        // 👇 UPDATE THIS URL
+        const response = await fetch(`https://api.jolpi.ca/ergast/f1/${year}/constructorStandings.json`);
+        
+        const data = await response.json();
+        if (!data.MRData || !data.MRData.StandingsTable.StandingsLists.length) return [];
+        return data.MRData.StandingsTable.StandingsLists[0].ConstructorStandings;
+    } catch (error) {
+        console.error("Error fetching constructor standings:", error);
+        return [];
+    }
+};

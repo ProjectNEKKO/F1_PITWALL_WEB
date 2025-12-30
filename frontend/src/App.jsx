@@ -4,9 +4,9 @@ import GlobalNav from './components/GlobalNav';
 // 👇 1. IMPORT THE REAL DASHBOARD HERE
 import Dashboard from './pages/Dashboard'; 
 import Analysis from './pages/Analysis';
+import Standings from './pages/Standings';
 
 // placeholders for other pages are fine for now
-const Standings = () => <div style={{padding: 50}}><h1>Standings</h1><p>Coming Soon</p></div>;
 const Settings = () => <div style={{padding: 50}}><h1>Settings</h1><p>Coming Soon</p></div>;
 
 function App() {

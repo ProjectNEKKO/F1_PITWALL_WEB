@@ -1,0 +1,26 @@
+// No imports needed! Just string paths relative to the public folder.
+
+export const TRACK_MAPS = {
+    'Sakhir': '/tracks/bahrain.svg',
+    'Melbourne': '/tracks/australia.svg',
+    'Shanghai': '/tracks/china.svg',
+    'Suzuka': '/tracks/japan.svg',
+    'Miami Gardens': '/tracks/miami.svg',
+    'Montréal': '/tracks/canada.svg',
+    'Monte Carlo': '/tracks/monaco.svg',
+    'Barcelona': '/tracks/spain.svg',
+    'Spielberg': '/tracks/austria.svg',
+    'Silverstone': '/tracks/uk.svg',
+    'Spa-Francorchamps': '/tracks/spa.svg',
+    'Budapest': '/tracks/hungary.svg',
+    'Zandvoort': '/tracks/dutch.svg',
+    'Monza': '/tracks/italy.svg',
+    'Baku': '/tracks/azerbaijan.svg',
+    'Marina Bay': '/tracks/singapore.svg',
+    'Austin': '/tracks/usa.svg',
+    'Mexico City': '/tracks/mexico.svg',
+    'São Paulo': '/tracks/brazil.svg',
+    'Las Vegas': '/tracks/vegas.svg',
+    'Lusail': '/tracks/qatar.svg',
+    'Yas Marina': '/tracks/abudhabi.svg',
+};

@@ -4,6 +4,8 @@ import { Calendar, MapPin, Flag, ArrowRight, Clock, Trophy, PlayCircle } from 'l
 import { Link } from 'react-router-dom';
 import './Dashboard.css';
 
+import { TRACK_MAPS } from '../utils/trackImages';
+
 function Dashboard() {
   const [nextRace, setNextRace] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -11,15 +13,13 @@ function Dashboard() {
   const [raceStatus, setRaceStatus] = useState('UPCOMING'); 
   const [seasonDisplay, setSeasonDisplay] = useState(new Date().getFullYear());
 
-  // 1. SMART DATE PARSER (The Fix)
+  // 1. SMART DATE PARSER
   const getEventDate = (race) => {
     if (!race) return null;
     
     let dateStr = "";
     // Format A: 2026 Data (Single ISO String)
     if (race.EventDate) {
-        // If it looks like "2026-02-13T00:00:00", use it directly
-        // But if it's just "2026-02-13", append a default time
         dateStr = race.EventDate.includes('T') ? race.EventDate : `${race.EventDate}T08:00:00`;
     } 
     // Format B: 2025 Data (Split Date/Time)
@@ -63,12 +63,10 @@ function Dashboard() {
           // 2. Check Next Season (2026)
           getSchedule(currentYear + 1).then(nextData => {
               if (nextData && nextData.races && nextData.races.length > 0) {
-                  // Grab the very first event (Testing or Race)
                   setNextRace(nextData.races[0]);
                   setSeasonDisplay(currentYear + 1);
-                  setRaceStatus('UPCOMING'); // Force upcoming
+                  setRaceStatus('UPCOMING'); 
               } else {
-                  // Fallback: Show last race of 2025
                   if (data && data.races) {
                       setNextRace(data.races[data.races.length - 1]);
                       setRaceStatus('COMPLETED');
@@ -100,10 +98,8 @@ function Dashboard() {
         });
         setRaceStatus('UPCOMING');
       } else if (diff > -7200000) { 
-        // If within 2 hours after start = "LIVE"
         setRaceStatus('LIVE');
       } else {
-        // Only mark completed if > 2 hours past start
         setRaceStatus('COMPLETED');
       }
     }, 1000);
@@ -111,7 +107,6 @@ function Dashboard() {
     return () => clearInterval(interval);
   }, [nextRace, raceStatus]);
 
-  // Helper for Display Date
   const formatDate = () => {
       const d = getEventDate(nextRace);
       if (!d || isNaN(d.getTime())) return "TBA";
@@ -125,6 +120,10 @@ function Dashboard() {
       return "SEASON FINALE";
   };
 
+  const currentTrackImage = nextRace && TRACK_MAPS[nextRace.Location] 
+    ? TRACK_MAPS[nextRace.Location] 
+    : null;
+
   if (loading) return <div className="dashboard-loading">Loading Mission Control...</div>;
 
   return (
@@ -132,6 +131,8 @@ function Dashboard() {
       
       {/* HERO SECTION */}
       <div className="hero-card">
+        
+        {/* LEFT SIDE CONTENT */}
         <div className="hero-content">
           <div className={`hero-badge ${raceStatus === 'LIVE' ? 'live-badge' : ''}`}>
              {getBadgeText()}
@@ -148,7 +149,6 @@ function Dashboard() {
             <div className="detail-item">
               <MapPin size={18} /> {nextRace?.Country}
             </div>
-            {/* Show Round only if it's a real race */}
             {!nextRace?.EventName?.includes('Testing') && (
                  <div className="detail-item"><Trophy size={18} /> Round {nextRace?.RoundNumber}</div>
             )}
@@ -194,10 +194,27 @@ function Dashboard() {
           )}
         </div>
         
-        <div className="hero-art">
-           <div className="art-circle"></div>
-           <div className="art-line"></div>
+        {/* RIGHT SIDE STATS (New Placement) */}
+        <div className="track-stats-right">
+            <div className="stat-row">
+               <span className="stat-label">LENGTH</span> 5.412 KM
+            </div>
+            <div className="stat-row">
+               <span className="stat-label">TURNS</span> 15
+            </div>
+            <div className="stat-row">
+               <span className="stat-label">DRS</span> 3 ZONES
+            </div>
         </div>
+
+        {/* BACKGROUND TRACK OVERLAY */}
+        {currentTrackImage && (
+          <div 
+              className="track-overlay" 
+              style={{ backgroundImage: `url(${currentTrackImage})` }}
+          ></div>
+        )}
+
       </div>
 
       {/* QUICK ACTIONS */}

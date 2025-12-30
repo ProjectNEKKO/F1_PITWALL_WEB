@@ -1,0 +1,259 @@
+/* frontend/src/pages/Standings.css */
+
+.standings-container {
+    padding: 40px 60px;
+    /* A slightly deeper gray background to make white cards pop */
+    background-color: #eaebf0; 
+    color: #1a1a1a; 
+    width: 100%; 
+    min-height: 100vh;
+    box-sizing: border-box;
+    animation: fadeIn 0.5s ease;
+}
+
+/* --- HEADER & CONTROLS (Kept mostly the same, just refined colors) --- */
+.standings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 60px; /* More space before podium */
+}
+
+.header-left { display: flex; align-items: center; gap: 20px; }
+
+.back-btn {
+    color: #444;
+    display: flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    transition: all 0.2s;
+}
+.back-btn:hover { transform: translateX(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.1); color: #000; }
+
+h1 {
+    font-size: 32px; font-weight: 800; margin: 0; color: #1a1a1a;
+    letter-spacing: -0.5px;
+}
+
+.header-controls { display: flex; gap: 25px; align-items: center; }
+
+/* Sleeker Year Select */
+.year-select {
+    appearance: none; background: white; border: none;
+    padding: 10px 40px 10px 20px; border-radius: 12px;
+    font-weight: 700; color: #1a1a1a; cursor: pointer; outline: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    transition: all 0.2s;
+}
+.year-select:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.1); transform: translateY(-2px); }
+.select-arrow { right: 15px; color: #666; }
+
+/* Sleeker Toggle */
+.toggle-box {
+    background: white; padding: 5px; border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+.toggle-btn {
+    padding: 10px 24px; border-radius: 12px; font-weight: 700; color: #666;
+}
+.toggle-btn.active {
+    background: #e10600; color: white;
+    box-shadow: 0 4px 15px rgba(225, 6, 0, 0.3);
+}
+
+
+/* --- NEW PODIUM STRUCTURE (The big fix) --- */
+.podium-grid {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end; /* Crucial for stepping effect */
+    gap: 30px; /* More space between cards */
+    margin-bottom: 60px;
+    min-height: 350px; /* Ensure enough room for height differences */
+}
+
+.podium-card {
+    background: white;
+    border-radius: 24px; /*Rounder corners */
+    padding: 25px;
+    width: 30%; /* Wider cards */
+    min-width: 300px;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    /* DEEP SHADOW for depth */
+    box-shadow: 0 15px 40px -10px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end; /* Pushes content towards bottom */
+}
+
+.podium-card:hover { 
+    transform: translateY(-8px);
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
+}
+
+/* Distinct Heights for Steps */
+.rank-1 { height: 340px; order: 2; z-index: 2; } /* Tallest, center */
+.rank-2 { height: 280px; order: 1; }
+.rank-3 { height: 260px; order: 3; }
+
+/* New Medal-Style Badges (Replaces the giant background numbers) */
+.rank-badge {
+    position: absolute;
+    top: 20px; left: 50%;
+    transform: translateX(-50%);
+    width: 50px; height: 50px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; font-weight: 900; color: white;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+}
+
+/* Subtle coloring for badges */
+.rank-1 .rank-badge { background: linear-gradient(135deg, #ffd700, #e6c200); } /* Gold */
+.rank-2 .rank-badge { background: linear-gradient(135deg, #c0c0c0, #a8a8a8); } /* Silver */
+.rank-3 .rank-badge { background: linear-gradient(135deg, #cd7f32, #b87333); } /* Bronze */
+
+.podium-info { margin-bottom: 20px; }
+.podium-name { font-size: 22px; margin: 15px 0 5px 0; font-weight: 800; color: #1a1a1a; }
+.podium-team { font-size: 13px; margin-bottom: 15px; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; color: #666; }
+.podium-points { font-size: 36px; font-weight: 900; color: #1a1a1a; }
+.podium-points span { font-size: 14px; font-weight: 600; color: #888; margin-left: 5px; }
+
+/* Thicker, bolder accent bar */
+.team-accent {
+    position: absolute; bottom: 0; left: 0; width: 100%; height: 6px;
+}
+
+
+/* --- LIST SECTION (Floating Rows) --- */
+.list-grid { display: flex; flex-direction: column; gap: 12px; }
+
+.list-row {
+    background: white;
+    border-radius: 16px;
+    padding: 18px 30px;
+    display: flex; align-items: center;
+    /* Deeper shadow than before */
+    box-shadow: 0 5px 15px -5px rgba(0,0,0,0.08);
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.list-row:hover { 
+    transform: scale(1.01);
+    box-shadow: 0 10px 25px -8px rgba(0,0,0,0.12);
+    border-color: #eee;
+}
+
+.list-rank { width: 50px; font-weight: 900; color: #999; font-size: 18px; }
+.list-color { width: 5px; height: 28px; border-radius: 4px; margin-right: 25px; }
+.list-name { flex-grow: 1; font-weight: 700; display: flex; align-items: center; gap: 15px; font-size: 17px; color: #1a1a1a; }
+.list-team-label { 
+    font-size: 12px; color: #555; 
+    background: #f0f2f5; /* Matches background color for cutout effect */
+    padding: 5px 10px; border-radius: 8px; font-weight: 600; text-transform: uppercase;
+}
+.list-points { font-weight: 800; color: #1a1a1a; font-size: 18px; }
+
+/* --- MESSAGES --- */
+.no-data-message {
+    text-align: center; padding: 80px; color: #666;
+    background: white; border-radius: 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+.retry-btn {
+    background: #e10600; color: white; border: none;
+    padding: 14px 30px; border-radius: 12px; margin-top: 25px;
+    cursor: pointer; font-weight: 700; font-size: 16px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 15px rgba(225, 6, 0, 0.3);
+}
+.custom-dropdown {
+    position: relative;
+    width: 160px; /* Fixed width for stability */
+    z-index: 100; /* Ensure it floats ABOVE the podium cards */
+}
+
+/* The Button */
+.dropdown-trigger {
+    width: 100%;
+    background: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-family: inherit;
+    font-weight: 700;
+    color: #1a1a1a;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    transition: all 0.2s ease;
+}
+
+.dropdown-trigger:hover, .dropdown-trigger.open {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.dropdown-trigger .arrow {
+    transition: transform 0.3s ease;
+    color: #888;
+}
+.dropdown-trigger .arrow.rotate {
+    transform: rotate(180deg);
+}
+
+/* The Floating Menu */
+.dropdown-menu {
+    position: absolute;
+    top: 115%; /* Slight gap below button */
+    left: 0;
+    width: 100%;
+    background: white;
+    border-radius: 12px;
+    padding: 6px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    animation: fadeInMenu 0.2s ease forwards;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+/* Menu Items */
+.dropdown-item {
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #444;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background 0.1s;
+}
+
+.dropdown-item:hover {
+    background: #f5f5f7;
+    color: #000;
+}
+
+.dropdown-item.selected {
+    background: #fff0f0; /* Very light red bg for active item */
+    color: #e10600;
+}
+
+@keyframes fadeInMenu {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.retry-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(225, 6, 0, 0.4); }

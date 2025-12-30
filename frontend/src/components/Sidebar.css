@@ -1,5 +1,22 @@
 /* frontend/src/components/Sidebar.css */
 
+sidebar {
+  /* Change background from white to dark grey */
+  background-color: #1a1a1a; 
+  border-right: 1px solid #333;
+  /* ... rest of your styles ... */
+}
+
+/* Update text colors so they are visible on dark */
+.nav-link {
+    color: #888;
+}
+
+.nav-link:hover, .nav-link.active {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
 .sidebar-container {
   height: 100%;
   display: flex;
