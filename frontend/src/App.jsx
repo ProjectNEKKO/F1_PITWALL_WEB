@@ -6,6 +6,8 @@ import Dashboard from './pages/Dashboard';
 import Analysis from './pages/Analysis';
 import Standings from './pages/Standings';
 
+import SystemFooter from './components/SystemFooter';
+
 // placeholders for other pages are fine for now
 const Settings = () => <div style={{padding: 50}}><h1>Settings</h1><p>Coming Soon</p></div>;
 
@@ -24,6 +26,9 @@ function App() {
              <Route path="/standings" element={<Standings />} />
              <Route path="/settings" element={<Settings />} />
            </Routes>
+
+          <SystemFooter />
+
         </div>
 
       </div>

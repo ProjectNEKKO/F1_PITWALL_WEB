@@ -1,0 +1,31 @@
+.system-footer {
+    /* 👇 GLOBAL POSITIONING */
+    position: fixed;
+    bottom: 0;
+    left: 80px; /* Start after the Sidebar (Collapsed width) */
+    right: 0;   /* Force it to touch the right edge */
+    
+    /* Visuals */
+    height: 35px;
+    background: #1a1a1a;
+    color: #666;
+    display: flex;
+    align-items: center;
+    padding: 0 30px;
+    gap: 30px;
+    
+    /* Typography */
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    
+    /* Border & Layering */
+    border-top: 1px solid #333;
+    z-index: 1000; /* Ensure it sits on top of everything */
+}
+
+.sys-item { display: flex; align-items: center; gap: 8px; }
+.sys-item strong { color: #eee; }
+.sys-item.right { margin-left: auto; color: #444; }
+.sys-icon { color: #666; }
+.sys-icon.success { color: #22c55e; }

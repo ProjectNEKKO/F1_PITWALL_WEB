@@ -2,14 +2,15 @@
 
 .dashboard-container {
   padding: 30px;
+  padding-bottom: 80px;
   width: 100%;
-  /* 👇 CHANGED: Use min-height 100vh to ensure it fills screen even on big monitors */
   min-height: 100vh; 
   margin: 0 auto;
-  animation: fadeIn 0.5s ease;
-  box-sizing: border-box; 
-  /* Make room for the footer so it doesn't cover content */
-  padding-bottom: 80px; 
+  box-sizing: border-box;
+  
+  display: flex;
+  flex-direction: column; 
+  position: relative; 
 }
 
 .dashboard-loading {
@@ -281,20 +282,11 @@
 .mini-row.top-2 .mini-pos, .mini-row.top-3 .mini-pos { color: #ccc; padding-left: 8px; } /* Push text past the bar */
 .mini-row.top-2 .mini-name, .mini-row.top-3 .mini-name { color: #fff; }
 
-
-/* --- SYSTEM FOOTER --- */
-.system-footer {
-  position: fixed; bottom: 0; left: 80px; right: 0;
-  background: #1a1a1a; color: #666; padding: 8px 30px;
-  display: flex; gap: 30px; font-family: 'Consolas', monospace; font-size: 10px;
-  border-top: 1px solid #333; z-index: 100;
-}
 .sys-item { display: flex; align-items: center; gap: 8px; letter-spacing: 0.5px; }
 .sys-item strong { color: #eee; }
 .sys-item.right { margin-left: auto; color: #444; }
 .sys-icon { color: #666; }
 .sys-icon.success { color: #22c55e; }
 
-/* ANIMATIONS */
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }

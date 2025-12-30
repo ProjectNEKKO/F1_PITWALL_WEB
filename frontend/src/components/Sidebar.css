@@ -68,8 +68,12 @@
 
 /* --- RACE LIST (The Big Change) --- */
 .race-list-container {
-  flex: 1; overflow-y: auto; padding: 12px;
-  background: #f9fafb; /* Slightly different bg for list area */
+  flex: 1; 
+  overflow-y: auto; 
+  padding: 12px;
+  background: #f9fafb;
+  
+  padding-bottom: 60px;
 }
 
 .race-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }

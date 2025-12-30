@@ -67,16 +67,25 @@ function Analysis() {
 
   // 2. Load Session
   const loadSession = (round, type) => {
+    setLoading(true); // 👈 START LOADING
     setSelectedRound(round);
     setSessionType(type);
     setActiveTab('results'); 
+    
+    // Reset Data
     setTelemetryData(null);
     setStrategyData(null);
     setTrackData(null);
     setSelectedDriver(null);
+    setSelectedRaceResults(null); // Clear old table immediately
 
     getSessionResults(selectedYear, round, type).then(data => {
-      if (!data.error) setSelectedRaceResults(data.results);
+      if (!data.error) {
+          setSelectedRaceResults(data.results);
+      } else {
+          setSelectedRaceResults([]); // Handle empty/error
+      }
+      setLoading(false); // 👈 STOP LOADING
     });
   };
 
@@ -221,13 +230,22 @@ function Analysis() {
 
             {/* VIEW 1: RESULTS TABLE */}
             {activeTab === 'results' && selectedRound && (
-              <div className="card" style={{padding: 0, overflow: 'hidden'}}>
-                 <ResultsTable 
-                   results={selectedRaceResults} 
-                   sessionType={sessionType} 
-                   selectedDriver={selectedDriver} 
-                   onDriverClick={loadDriverTelemetry} 
-                 />
+              <div className="card" style={{padding: 0, overflow: 'hidden', minHeight: '400px'}}>
+                 {loading ? (
+                    /* 👇 NEW LOADING SPINNER */
+                    <div className="table-loading-container">
+                        <div className="spinner"></div>
+                        <span>Fetching Race Classification...</span>
+                    </div>
+                 ) : (
+                    /* YOUR EXISTING TABLE */
+                    <ResultsTable 
+                       results={selectedRaceResults} 
+                       sessionType={sessionType} 
+                       selectedDriver={selectedDriver} 
+                       onDriverClick={loadDriverTelemetry} 
+                     />
+                 )}
               </div>
             )}
 

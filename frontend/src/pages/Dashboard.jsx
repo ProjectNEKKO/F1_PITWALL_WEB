@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 // 👇 NEW IMPORT: getDriverStandings
 import { getSchedule, getDriverStandings } from '../services/api'; 
-import { Calendar, MapPin, Flag, ArrowRight, Clock, Trophy, PlayCircle, Activity, Server, Wifi } from 'lucide-react';
+import { Calendar, MapPin, Flag, ArrowRight, Clock, Trophy, PlayCircle, Activity,} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import './Dashboard.css';
 
@@ -232,28 +232,7 @@ function Dashboard() {
               {topDrivers.length === 0 && <div className="mini-empty">No Standings Data Yet</div>}
           </div>
         </div>
-
       </div>
-
-      {/* 👇 NEW: SYSTEM STATUS FOOTER */}
-      <div className="system-footer">
-          <div className="sys-item">
-              <Server size={12} className="sys-icon success"/> 
-              <span>SYSTEM: <strong>ONLINE</strong></span>
-          </div>
-          <div className="sys-item">
-              <Wifi size={12} className="sys-icon"/> 
-              <span>LATENCY: <strong>24ms</strong></span>
-          </div>
-          <div className="sys-item">
-              <Activity size={12} className="sys-icon"/> 
-              <span>DATA SOURCE: <strong>ERGAST / OPENF1</strong></span>
-          </div>
-          <div className="sys-item right">
-              <span>V2.4.0 (STABLE)</span>
-          </div>
-      </div>
-
     </div>
   );
 }
