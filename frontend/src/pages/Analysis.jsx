@@ -6,8 +6,37 @@ import SessionControls from '../components/SessionControls';
 import Telemetry from '../components/Telemetry';
 import TrackMap from '../components/TrackMap';
 import TyreStrategy from '../components/TyreStrategy';
-import { BarChart2, List, ChevronLeft, ChevronRight, Gauge, Activity, GitCommit } from 'lucide-react';
-import './Analysis.css'; // <--- IMPORT THE CSS
+// 👇 Added 'Zap' to imports
+import { BarChart2, List, ChevronLeft, ChevronRight, Gauge, Activity, GitCommit, Zap } from 'lucide-react';
+import './Analysis.css';
+
+// 👇 DEFINE EMPTY STATE HERO COMPONENT
+const EmptyState = () => (
+  <div className="analysis-empty-container">
+    <div className="empty-content">
+      <div className="icon-ring">
+         <Activity size={48} className="empty-icon" />
+         <div className="ring-pulse"></div>
+      </div>
+      <h1>Telemetry Hub</h1>
+      <p>Select a Grand Prix from the archive to analyze sector times, speed traces, and tire degradation.</p>
+      <div className="feature-grid">
+          <div className="feature-item">
+              <Zap size={20} color="#e10600" />
+              <span>Speed Trap</span>
+          </div>
+          <div className="feature-item">
+              <BarChart2 size={20} color="#e10600" />
+              <span>Throttle Data</span>
+          </div>
+          <div className="feature-item">
+              <Activity size={20} color="#e10600" />
+              <span>Delta Times</span>
+          </div>
+      </div>
+    </div>
+  </div>
+);
 
 function Analysis() {
   // Global State
@@ -111,7 +140,6 @@ function Analysis() {
   };
 
   const currentRace = races.find(r => r.RoundNumber === selectedRound);
-  console.log("🏁 Current Race Data:", currentRace);
 
   return (
     <div className="analysis-container">
@@ -119,7 +147,7 @@ function Analysis() {
       {/* 1. COLLAPSIBLE SIDEBAR CONTAINER */}
       <div 
         className="sidebar-wrapper"
-        style={{ width: sidebarOpen ? '260px' : '0px', opacity: sidebarOpen ? 1 : 0 }} // Keep dynamic width inline
+        style={{ width: sidebarOpen ? '260px' : '0px', opacity: sidebarOpen ? 1 : 0 }} 
       >
           <Sidebar 
             races={races} 
@@ -137,21 +165,23 @@ function Analysis() {
         <div className="header-bar">
           
           <div className="header-title-group">
-             {/* Toggle Sidebar Button */}
-             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="toggle-btn">
-                {sidebarOpen ? <ChevronLeft size={20}/> : <ChevronRight size={20}/>}
-             </button>
+              {/* Toggle Sidebar Button */}
+              <button onClick={() => setSidebarOpen(!sidebarOpen)} className="toggle-btn">
+                 {sidebarOpen ? <ChevronLeft size={20}/> : <ChevronRight size={20}/>}
+              </button>
 
-             {selectedRound ? (
-               <div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
-                    <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '700' }}>{races.find(r => r.RoundNumber === selectedRound)?.EventName}</h2>
-                    <span style={{ fontSize: '12px', color: '#888' }}>Round {selectedRound}</span>
-                  </div>
-               </div>
-             ) : (
-                <div style={{color: '#888'}}>Select a race to begin</div>
-             )}
+              {selectedRound ? (
+                <div>
+                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
+                     <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '700' }}>
+                        {races.find(r => r.RoundNumber === selectedRound)?.EventName}
+                     </h2>
+                     <span style={{ fontSize: '12px', color: '#888' }}>Round {selectedRound}</span>
+                   </div>
+                </div>
+              ) : (
+                 <div style={{color: '#888', fontWeight: 600}}>Analysis View</div>
+              )}
           </div>
 
           {/* TABS & CONTROLS */}
@@ -177,7 +207,6 @@ function Analysis() {
                <SessionControls 
                   sessionType={sessionType} 
                   onSessionChange={(type) => loadSession(selectedRound, type)}
-                  // 👇 PASS THE RACE DATA HERE
                   raceData={races.find(r => r.RoundNumber === selectedRound)} 
               />
             </div>
@@ -186,128 +215,129 @@ function Analysis() {
 
         {/* SCROLLABLE CONTENT */}
         <div className="scrollable-area">
-           
-           {/* VIEW 1: RESULTS TABLE */}
-           {activeTab === 'results' && selectedRound && (
-             <div className="card" style={{padding: 0, overflow: 'hidden'}}>
-                <ResultsTable 
-                  results={selectedRaceResults} 
-                  sessionType={sessionType} 
-                  selectedDriver={selectedDriver} 
-                  onDriverClick={loadDriverTelemetry} 
-                />
-             </div>
-           )}
+            
+            {/* 👇 VIEW 0: EMPTY STATE (HERO) */}
+            {!selectedRound && <EmptyState />}
 
-           {/* VIEW 2: TELEMETRY (BENTO GRID LAYOUT) */}
-           {activeTab === 'telemetry' && selectedDriver && (
-             <div className="bento-grid">
-                
-                {/* ROW 1: STRATEGY */}
-                {strategyData && (
-                  <div className="card" style={{padding: '15px'}}>
-                    <TyreStrategy strategy={strategyData} />
-                  </div>
-                )}
+            {/* VIEW 1: RESULTS TABLE */}
+            {activeTab === 'results' && selectedRound && (
+              <div className="card" style={{padding: 0, overflow: 'hidden'}}>
+                 <ResultsTable 
+                   results={selectedRaceResults} 
+                   sessionType={sessionType} 
+                   selectedDriver={selectedDriver} 
+                   onDriverClick={loadDriverTelemetry} 
+                 />
+              </div>
+            )}
 
-                {/* ROW 2: MAP & STATS */}
-                <div className="bento-row-split">
-                    
-                    {/* MAP CARD */}
-                    <div className="card map-card">
-                      <div className="map-header">
-                        <h4 className="card-title" style={{marginBottom: 0}}>TRACK LAYOUT</h4>
-                      </div>
-                      {/* Passed 'height' prop so the map knows to fill the space */}
-                      {trackData ? (
-                        <TrackMap 
-                          data={trackData} 
-                          driver={selectedDriver} 
-                          driversList={selectedRaceResults}
-                          height={350} 
-                        /> 
-                      ) : (
-                        <div style={{height: '100%', background: '#f9f9f9'}}/>
-                      )}
-                    </div>
+            {/* VIEW 2: TELEMETRY (BENTO GRID LAYOUT) */}
+            {activeTab === 'telemetry' && selectedDriver && (
+              <div className="bento-grid">
+                 
+                 {/* ROW 1: STRATEGY */}
+                 {strategyData && (
+                   <div className="card" style={{padding: '15px'}}>
+                     <TyreStrategy strategy={strategyData} />
+                   </div>
+                 )}
 
-                    {/* STATS CARD */}
-                    <div className="card stats-container">
-                      <div className="stats-grid">
-                          
-                          {/* 1. TOP SPEED */}
-                          <div className="stat-box red">
-                            <div className="stat-label">
-                                <Gauge size={14} /> TOP SPEED
-                            </div>
-                            <div className="stat-value">
-                              {Math.max(...(telemetryData?.map(d => d.Speed) || [0]))}
-                              <span className="stat-unit">KM/H</span>
-                            </div>
-                          </div>
+                 {/* ROW 2: MAP & STATS */}
+                 <div className="bento-row-split">
+                     
+                     {/* MAP CARD */}
+                     <div className="card map-card">
+                       <div className="map-header">
+                         <h4 className="card-title" style={{marginBottom: 0}}>TRACK LAYOUT</h4>
+                       </div>
+                       {trackData ? (
+                         <TrackMap 
+                           data={trackData} 
+                           driver={selectedDriver} 
+                           driversList={selectedRaceResults}
+                           height={350} 
+                         /> 
+                       ) : (
+                         <div style={{height: '100%', background: '#f9f9f9'}}/>
+                       )}
+                     </div>
 
-                          {/* 2. AVG SPEED */}
-                          <div className="stat-box blue">
-                            <div className="stat-label">
-                                <Activity size={14} /> AVG SPEED
-                            </div>
-                            <div className="stat-value">
-                              {Math.round(telemetryData?.reduce((a, b) => a + b.Speed, 0) / (telemetryData?.length || 1))}
-                              <span className="stat-unit">KM/H</span>
-                            </div>
-                          </div>
+                     {/* STATS CARD */}
+                     <div className="card stats-container">
+                       <div className="stats-grid">
+                           
+                           {/* 1. TOP SPEED */}
+                           <div className="stat-box red">
+                             <div className="stat-label">
+                                 <Gauge size={14} /> TOP SPEED
+                             </div>
+                             <div className="stat-value">
+                               {Math.max(...(telemetryData?.map(d => d.Speed) || [0]))}
+                               <span className="stat-unit">KM/H</span>
+                             </div>
+                           </div>
 
-                          {/* 3. GEAR SHIFTS */}
-                          <div className="stat-box orange">
-                            <div className="stat-label">
-                                <GitCommit size={14} /> GEAR SHIFTS
-                            </div>
-                            <div className="stat-value">
-                              {telemetryData?.filter((d, i, arr) => i > 0 && d.Gear !== arr[i-1].Gear).length || 0}
-                            </div>
-                          </div>
+                           {/* 2. AVG SPEED */}
+                           <div className="stat-box blue">
+                             <div className="stat-label">
+                                 <Activity size={14} /> AVG SPEED
+                             </div>
+                             <div className="stat-value">
+                               {Math.round(telemetryData?.reduce((a, b) => a + b.Speed, 0) / (telemetryData?.length || 1))}
+                               <span className="stat-unit">KM/H</span>
+                             </div>
+                           </div>
 
-                      </div>
-                    </div>
-                </div>
+                           {/* 3. GEAR SHIFTS */}
+                           <div className="stat-box orange">
+                             <div className="stat-label">
+                                 <GitCommit size={14} /> GEAR SHIFTS
+                             </div>
+                             <div className="stat-value">
+                               {telemetryData?.filter((d, i, arr) => i > 0 && d.Gear !== arr[i-1].Gear).length || 0}
+                             </div>
+                           </div>
 
-                {/* ROW 3: TELEMETRY GRAPHS */}
-                <div className="card">
-                    
-                    {/* DROPDOWN HEADER */}
-                    <div className="dropdown-header">
-                      <h4 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: '#1a1a1a' }}>
-                        TELEMETRY DATA 
-                        {comparisonDriver && <span style={{fontWeight: 'normal', color: '#666', marginLeft: '10px'}}>vs {comparisonDriver}</span>}
-                      </h4>
-                      
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ fontSize: '13px', color: '#666' }}>Compare with:</span>
-                        <select 
-                          className="compare-select"
-                          onChange={(e) => loadComparison(e.target.value)} 
-                          value={comparisonDriver || ""}
-                        >
-                          <option value="">-- Solo View --</option>
-                          {selectedRaceResults && selectedRaceResults.map(d => (
-                            <option key={d.Driver} value={d.Driver}>{d.Driver} ({d.Team})</option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                    {/* ----------------- */}
+                       </div>
+                     </div>
+                 </div>
 
-                    <Telemetry 
-                      data={telemetryData} 
-                      deltaData={deltaData}
-                      driver1={selectedDriver} 
-                      driver2={comparisonDriver} 
-                      driversList={selectedRaceResults || []} 
-                      onComparisonChange={loadComparison}
-                    />
-                </div>
-             </div>
-           )}
+                 {/* ROW 3: TELEMETRY GRAPHS */}
+                 <div className="card">
+                     
+                     {/* DROPDOWN HEADER */}
+                     <div className="dropdown-header">
+                       <h4 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: '#1a1a1a' }}>
+                         TELEMETRY DATA 
+                         {comparisonDriver && <span style={{fontWeight: 'normal', color: '#666', marginLeft: '10px'}}>vs {comparisonDriver}</span>}
+                       </h4>
+                       
+                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                         <span style={{ fontSize: '13px', color: '#666' }}>Compare with:</span>
+                         <select 
+                           className="compare-select"
+                           onChange={(e) => loadComparison(e.target.value)} 
+                           value={comparisonDriver || ""}
+                         >
+                           <option value="">-- Solo View --</option>
+                           {selectedRaceResults && selectedRaceResults.map(d => (
+                             <option key={d.Driver} value={d.Driver}>{d.Driver} ({d.Team})</option>
+                           ))}
+                         </select>
+                       </div>
+                     </div>
+
+                     <Telemetry 
+                       data={telemetryData} 
+                       deltaData={deltaData}
+                       driver1={selectedDriver} 
+                       driver2={comparisonDriver} 
+                       driversList={selectedRaceResults || []} 
+                       onComparisonChange={loadComparison}
+                     />
+                 </div>
+              </div>
+            )}
         </div>
       </div>
     </div>
